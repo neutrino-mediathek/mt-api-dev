@@ -1,0 +1,56 @@
+
+#ifndef __SQL_H__
+#define __SQL_H__
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <mysql.h>
+
+#include <string>
+
+#include "types.h"
+
+using namespace std;
+
+class CSql
+{
+	private:
+		MYSQL *mysqlCon;
+		string pwFile;
+		string usedDB;
+		string tabVideo;
+		int resultCount;
+
+		void Init();
+		void show_error(const char* func, int line);
+		char checkStringBuff[0xFFFF];
+		inline string checkString(string& str, int size) {
+			size_t size_ = ((size_t)size > (sizeof(checkStringBuff)-1)) ? sizeof(checkStringBuff)-1 : size;
+			string str2 = (str.length() > size_) ? str.substr(0, size_) : str;
+//			memset(checkStringBuff, 0, sizeof(checkStringBuff));
+			memset(checkStringBuff, 0, size_+1);
+			mysql_real_escape_string(mysqlCon, checkStringBuff, str2.c_str(), str2.length());
+			str = (string)checkStringBuff;
+			return "'" + str + "'";
+		}
+		inline string checkInt(int i) { return to_string(i); }
+		string formatSql(string data, int id, string tagBefore="", string tagAfter="");
+		int getResultCount(string where);
+		double startTimer();
+		string getTimer(double startTime, string txt, int preci=3);
+
+	public:
+		CSql();
+		~CSql();
+
+		bool connectMysql();
+		bool sqlListVideo(listVideo_t* lv);
+};
+
+
+
+#endif // __SQL_H__

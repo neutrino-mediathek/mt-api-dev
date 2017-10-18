@@ -1,0 +1,41 @@
+
+// Fonts
+$default-font:			Helvetica, sans-serif, Arial;
+
+// Font sizes
+$default-font-size:		20pt;
+
+// Colors
+$magic-color:			#FD6D13;
+
+// * ************************* *
+// * *********  CSS  ********* *
+// * ************************* *
+
+body {
+  font-family: $default-font;
+  font-size: $default-font-size;
+  color: black;
+  background-image: linear-gradient(to right, #d0d0d0, #f0f0f0);
+}
+
+.indexText1 {
+  font-size: 80px;
+  color: $magic-color;
+  font-weight: bold;
+  text-shadow: 6px 6px 6px gray;
+}
+
+.indexText2 {
+  font-size: 40px;
+  text-shadow: 4px 4px 4px gray;
+}
+
+.indexDiv {
+  text-align: center;
+  padding-top: 100px;
+}
+
+.indexTextDiv {
+  padding-top: 70px;
+}

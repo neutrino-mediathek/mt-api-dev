@@ -1,0 +1,146 @@
+
+// Fonts
+$default-font:			Helvetica, sans-serif, Arial;
+$fixed-font:			Fixed, monospace, Courier New;
+
+// Font sizes
+$default-font-size:		10.5pt;
+$fixed-font-size:		$default-font-size * 0.93;
+$copyR-font-size:		$default-font-size * 0.85;
+$magic-button-font-size:	$default-font-size * 1.25;
+
+// Colors
+$default-color:			#202020;
+$default-background-color:	#FAFAFA;
+$div-background-color:		#F2F2F2;
+$magic-color:			#FD6D13;
+$magic-button-color:		#B34D0D;
+$magic-button-shadow1:		#F0F0F0;
+$magic-button-shadow2:		#99420B;
+$transparent-color:		rgba(255, 255, 255, 0);
+
+// Borders
+$border-black:			black 1px solid;
+$border-light:			#FFFFFF 1px groove;
+$border-none:			black 0px solid;
+
+// padding
+$default-padding:		16px;
+
+// * ************************* *
+// * *********  CSS  ********* *
+// * ************************* *
+
+body {
+  font-family: $default-font;
+  font-size: $default-font-size;
+  color: $default-color;
+  background-color: $default-background-color;
+}
+
+textarea {
+  font-size: $fixed-font-size;
+  font-family: $fixed-font;
+}
+
+pre {
+  font-size: $fixed-font-size;
+  font-family: $fixed-font;
+}
+
+.main-footer-copyR {
+  font-size: $copyR-font-size;
+  padding: $default-padding;
+  background-color: $div-background-color;
+}
+
+.main-footer-div {
+  padding-left: $default-padding;
+  padding-right: $default-padding;
+}
+
+.main-footer-tab {
+  width: 100%;
+  background-color: $div-background-color;
+}
+
+div#sqlContainer {
+  padding-left: $default-padding;
+  padding-right: $default-padding;
+}
+
+div#sql_0 {
+  background-color: $div-background-color;
+  border-left: $border-black;
+  border-right: $border-black;
+  border-bottom: $border-black;
+}
+
+div#sql_1, div#sql_2 {
+  float: left;
+  width: 50%;
+  background-color: $transparent-color;
+}
+
+div#sqlCode_1, div#sqlCode_2 {
+  padding: $default-padding / 2;
+}
+
+div#sqlCode_1 {
+  border-right: $border-light;
+}
+
+div#sqlCode_2 {
+  border-left: $border-light;
+}
+
+div#sqlFooter {
+  clear: left;
+}
+
+div#sqlHeader {
+  width: 100%;
+  background-color: $magic-color;
+}
+
+div#sqlHeader_inner {
+  width: auto;
+  padding-left: $default-padding;
+  padding-top: ($default-padding / 4) + 1;
+  padding-bottom: $default-padding / 4;
+}
+
+.spoiler1_txt {
+  cursor: pointer;
+  font-weight: bold;
+  color: $magic-button-color;
+  font-size: $magic-button-font-size;
+  text-shadow: 0px -1px 1px $magic-button-shadow1, 0px 1px 1px $magic-button-shadow2;
+}
+
+.jsonInput {
+  padding-bottom: $default-padding / 2;
+  padding-top: $default-padding;
+  padding-left: $default-padding;
+  border: $border-none;
+}
+
+.formatTable {
+  width: 100%;
+  border: $border-none;
+}
+
+.formatTD {
+  border: $border-none;
+  vertical-align: top;
+}
+
+.msgDiv {
+  padding-top: $default-padding / 2;
+  padding-right: $default-padding;
+}
+
+.msgPre {
+  border: $border-black;
+  padding: $default-padding / 4;
+}

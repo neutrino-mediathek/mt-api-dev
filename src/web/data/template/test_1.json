@@ -1,0 +1,18 @@
+{
+    "software": "coolithek NeutrinoHD",
+    "debug": true,
+    "vMajor": 0,
+    "vMinor": 3,
+    "isBeta": true,
+    "vBeta": 1,
+    "mode": 4,
+    "data": {
+        "channel": "ARD",
+        "timeMode": 2,
+        "epoch": 1400,
+        "duration": 1,
+        "limit": 25,
+        "start": 0,
+        "refTime": 1506344767
+    }
+}

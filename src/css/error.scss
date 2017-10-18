@@ -1,0 +1,56 @@
+
+// Fonts
+$default-font:			Helvetica, sans-serif, Arial;
+
+// Font sizes
+$default-font-size:		20pt;
+
+// Colors
+$magic-color:			#FD6D13;
+$textFrameColor:		#BF520E;
+$textShadowColor:		#808080;
+
+// * ************************* *
+// * *********  CSS  ********* *
+// * ************************* *
+
+body {
+  font-family: $default-font;
+  font-size: $default-font-size;
+  color: black;
+  background-image: linear-gradient(to right, #D0D0D0, #F0F0F0);
+}
+
+.errorNum {
+  padding: 20px;
+  font-size: 180px;
+  text-shadow: 0 -2px $textFrameColor, 2px 0 $textFrameColor, 0 2px $textFrameColor, -2px 0 $textFrameColor, 10px 10px 12px $textShadowColor;
+}
+
+.errorText1, .errorNum {
+  color: $magic-color;
+  font-weight: bold;
+}
+
+.errorText1 {
+  font-size: 40px;
+  text-shadow: 0 -1px $textFrameColor, 1px 0 $textFrameColor, 0 1px $textFrameColor, -1px 0 $textFrameColor, 4px 4px 4px $textShadowColor;
+}
+
+.errorText2, .errorText3 {
+  font-size: 40px;
+  text-shadow: 4px 4px 4px $textShadowColor;
+}
+
+.errorText3 {
+  color: #707070;
+}
+
+.errorDiv {
+  text-align: center;
+  padding-top: 100px;
+}
+
+.errorTextDiv {
+  padding-top: 50px;
+}

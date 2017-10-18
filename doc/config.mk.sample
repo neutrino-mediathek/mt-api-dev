@@ -1,0 +1,50 @@
+
+DEBUG			= 1
+ENABLE_SANITIZER	= 1
+QUIET			= 1
+#DESTDIR			= 
+EXTRA_CXXFLAGS		= 
+EXTRA_LDFLAGS		= 
+EXTRA_INCLUDES		= 
+EXTRA_LIBS		= 
+STRIP			= strip
+SASS			= /usr/local/bin/sass
+
+#USE_COMPILER		= GCC
+USE_COMPILER		= CLANG
+
+ifeq ($(USE_COMPILER), CLANG)
+	COMPILER_VER	= clang50
+else
+	COMPILER_VER	= gcc7
+endif
+
+ifeq ($(COMPILER_VER), gcc5)
+	CXX		= g++-5
+	LD		= g++-5
+	STDC++		= -std=c++14
+endif
+
+ifeq ($(COMPILER_VER), gcc6)
+	CXX		= g++-6
+	LD		= g++-6
+	STDC++		= -std=c++14
+endif
+
+ifeq ($(COMPILER_VER), gcc7)
+	CXX		= g++-7
+	LD		= g++-7
+	STDC++		= -std=c++17
+endif
+
+ifeq ($(USE_COMPILER), CLANG)
+	CXX		= clang++
+	LD		= clang++
+#	LD		= clang++ -v
+ifeq ($(COMPILER_VER), clang38)
+	STDC++		= -std=c++14
+endif
+ifeq ($(COMPILER_VER), clang50)
+	STDC++		= -std=c++17
+endif
+endif

@@ -1,0 +1,15 @@
+parser
+parser.sh
+sqlpasswd
+build
+zz*.sh
+*.log
+*.diff
+*.patch
+*.o
+*.d
+config.mk
+makex
+sass.txt
+.sass-cache
+sass_version.h
