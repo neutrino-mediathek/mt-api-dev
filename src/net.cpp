@@ -103,6 +103,11 @@ string CNet::getPostValue(vector<string>& post_v, string key)
 	return "";
 }
 
+string CNet::encodeData(string data)
+{
+	return uri::encoded(data);
+}
+
 /*
 cgi environment variables:
 --------------------------

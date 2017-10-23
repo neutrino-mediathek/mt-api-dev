@@ -36,6 +36,7 @@ class CNet
 		uint32_t getPostMaxData() { return postMaxData; };
 
 		string getEnv(string key);
+		string encodeData(string data);
 };
 
 
