@@ -23,6 +23,8 @@ extern string		g_dataRoot;
 extern bool		g_debugMode;
 extern int		g_apiMode;
 extern string		g_msgBoxText;
+extern const char*	g_progNameShort;
+extern const char*	g_progVersion;
 
 CSql::CSql()
 {
@@ -32,10 +34,12 @@ CSql::CSql()
 void CSql::Init()
 {
 	mysqlCon = NULL;
-	pwFile   = g_dataRoot + "/.passwd/sqlpasswd";
-	usedDB   = "mediathek_1_TEST";
-	tabVideo = "video";
-	resultCount = 0;
+	pwFile		= g_dataRoot + "/.passwd/sqlpasswd";
+	usedDB		= "mediathek_1_TEST";
+	tabChannelinfo	= "channelinfo";
+	tabVersion	= "version";
+	tabVideo	= "video";
+	resultCount	= 0;
 }
 
 CSql::~CSql()
@@ -99,7 +103,25 @@ string CSql::getTimer(double startTime, string txt, int preci/*=3*/)
 	gettimeofday(&t1, NULL);
 	double workDTms = (double)t1.tv_sec*1000ULL + ((double)t1.tv_usec)/1000ULL;
 	string format = "{0} {1:F" + to_string(preci) + "} sec";
-	return llvm::formatv(format.c_str(), txt, (workDTms - startTime) / 1000ULL);
+	return llvm::formatv(format.c_str(), txt, (double)((workDTms - startTime) / 1000ULL));
+}
+
+int CSql::row2int(MYSQL_ROW& row, uint64_t* lengths, int index)
+{
+	string tmp_s = row2string(row, lengths, index);
+	return atoi(tmp_s.c_str());
+}
+
+bool CSql::row2bool(MYSQL_ROW& row, uint64_t* lengths, int index)
+{
+	string tmp_s = row2string(row, lengths, index);
+	return (!strEqual(tmp_s.substr(0, 1), "0"));
+}
+
+string CSql::row2string(MYSQL_ROW& row, uint64_t* lengths, int index)
+{
+	string tmp_s = static_cast<string>(row[index]);
+	return tmp_s.substr(0, lengths[index]);
 }
 
 int CSql::getResultCount(string where)
@@ -125,9 +147,7 @@ int CSql::getResultCount(string where)
 			row = mysql_fetch_row(result);
 			uint64_t* lengths = mysql_fetch_lengths(result);
 			if ((row != NULL) && (row[0] != NULL)) {
-				string tmp_s = static_cast<string>(row[0]);
-				tmp_s = tmp_s.substr(0, lengths[0]);
-				ret = stoi(tmp_s);
+				ret = row2int(row, lengths, 0);
 			}
 		}
 		mysql_free_result(result);
@@ -205,3 +225,49 @@ bool CSql::sqlListVideo(listVideo_t* lv)
 
 	return true;
 }
+
+bool CSql::sqlGetProgInfo(progInfo_t* pi)
+{
+	(void)pi;
+
+	if (mysqlCon == NULL)
+		return false;
+
+	string sql = "";
+	sql += "SELECT version, vdate, mvversion, mvdate, mventrys, progname, progversion";
+	sql += " FROM " + tabVersion;
+	sql += " LIMIT 1;";
+
+	if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
+		show_error(__func__, __LINE__);
+		return false;
+	}
+
+	MYSQL_RES* result = mysql_store_result(mysqlCon);
+	if (result) {
+		if (mysql_num_fields(result) > 0) {
+			MYSQL_ROW row;
+			row = mysql_fetch_row(result);
+			uint64_t* lengths = mysql_fetch_lengths(result);
+			if ((row != NULL) && (row[0] != NULL)) {
+				int index = 0;
+				pi->version	= row2string(row, lengths, index++);
+				pi->vdate	= row2int(row, lengths, index++);
+				pi->mvversion	= row2string(row, lengths, index++);
+				pi->mvdate	= row2int(row, lengths, index++);
+				pi->mventrys	= row2int(row, lengths, index++);
+				pi->progname	= row2string(row, lengths, index++);
+				pi->progversion	= row2string(row, lengths, index++);
+			}
+		}
+		mysql_free_result(result);
+	}
+
+	if (g_debugMode)
+		g_mainInstance->htmlOut << formatSql(sql, 1, "", "") << endl;
+
+	pi->api		= static_cast<string>(g_progNameShort);
+	pi->apiversion	= static_cast<string>(g_progVersion);
+	return true;
+}
+

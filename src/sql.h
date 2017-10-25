@@ -22,6 +22,8 @@ class CSql
 		MYSQL *mysqlCon;
 		string pwFile;
 		string usedDB;
+		string tabChannelinfo;
+		string tabVersion;
 		string tabVideo;
 		int resultCount;
 
@@ -42,6 +44,9 @@ class CSql
 		int getResultCount(string where);
 		double startTimer();
 		string getTimer(double startTime, string txt, int preci=3);
+		int row2int(MYSQL_ROW& row, uint64_t* lengths, int index);
+		bool row2bool(MYSQL_ROW& row, uint64_t* lengths, int index);
+		string row2string(MYSQL_ROW& row, uint64_t* lengths, int index);
 
 	public:
 		CSql();
@@ -49,6 +54,7 @@ class CSql
 
 		bool connectMysql();
 		bool sqlListVideo(listVideo_t* lv);
+		bool sqlGetProgInfo(progInfo_t* pi);
 };
 
 
