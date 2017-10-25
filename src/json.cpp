@@ -25,6 +25,7 @@ extern bool		g_debugMode;
 extern int		g_apiMode;
 extern int		g_queryMode;
 extern string		g_msgBoxText;
+extern string		g_dataRoot;
 
 CJson::CJson()
 {
@@ -221,7 +222,7 @@ bool CJson::parsePostData(string jData)
 	return true;
 }
 
-string CJson::progInfo2Json(progInfo_t* pi)
+string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)
 {
 	Json::Value json;
 	json["error"] = 0;
@@ -249,7 +250,7 @@ string CJson::progInfo2Json(progInfo_t* pi)
 	entry.append(entryData);
 	json["entry"] = entry;
 
-	return json2String(json, true);
+	return json2String(json, true, indent);
 }
 
 string CJson::jsonErrMsg(string msg, int err/*=1*/)
@@ -279,4 +280,16 @@ string CJson::json2String(Json::Value json, bool uriEncode/*=true*/, string inde
 		ret_s = g_mainInstance->cnet->encodeData(ret_s);
 
 	return ret_s;
+}
+
+string CJson::formatJson(string data, string tagBefore, string tagAfter)
+{
+	string html = readFile(g_dataRoot + "/template/json-format.html");
+	data = str_replace("\n", "\\n", data);
+	string rep = "@X@";
+	data = str_replace("\"", rep, data);
+	html = str_replace("@@@JSON_DATA@@@", data, html);
+	html = str_replace("@@@REP@@@", rep, html);
+
+	return tagBefore + html + tagAfter;
 }

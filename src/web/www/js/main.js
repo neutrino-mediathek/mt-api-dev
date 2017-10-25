@@ -28,6 +28,12 @@ function addTextMsgBox(txt, rep) {
 	document.getElementById('msgPre').innerHTML = tmpTxt + txt;
 }
 
+function jsonBox(json, rep) {
+	var rep2 = new RegExp(rep, "g");
+	json = json.replace(rep2, '"');
+	document.getElementById("jsonContainer_inner").innerHTML = "<pre>" + json + "</pre>";
+}
+
 function sqlBox(data, id) {
 	var sql = sqlFormatter.format(data);
 	document.getElementById("sqlCode_" + id).innerHTML = "<pre>" + sql + "</pre>";

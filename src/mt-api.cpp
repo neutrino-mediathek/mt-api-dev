@@ -22,6 +22,7 @@
 
 #define PROGVERSION "0.1.0"
 #define PROGNAME "mediathek-api"
+#define PROGNAMESHORT "mt-api"
 #define COPYRIGHT "2015-2017© M. Liebmann (micha-bbg)"
 
 #include <sys/types.h>
@@ -47,12 +48,14 @@
 
 CMtApi*			g_mainInstance;
 const char*		g_progName;
+const char*		g_progNameShort;
 const char*		g_progVersion;
 const char*		g_progCopyright;
 string			g_documentRoot;
 string			g_dataRoot;
 bool			g_debugMode;
 int			g_apiMode;
+int			g_queryMode;
 string			g_msgBoxText;
 
 void myExit(int val);
@@ -65,6 +68,7 @@ CMtApi::CMtApi()
 	csql		= NULL;
 	g_debugMode	= false;
 	g_apiMode	= apiMode_unknown;
+	g_queryMode	= queryMode_None;
 	g_msgBoxText	= "";
 	indexMode	= false;
 	Init();
@@ -88,8 +92,8 @@ void CMtApi::Init()
 	string inData;
 	cnet->readGetData(inData);
 	cnet->splitGetInput(inData, getData);
-	queryString = cnet->getGetValue(getData, "mode");
-	if (queryString.empty() || (queryString == "index")) {
+	queryString_mode = cnet->getGetValue(getData, "mode");
+	if (queryString_mode.empty() || strEqual(queryString_mode, "index")) {
 		indexMode = true;
 	}
 	string tmp_s = cnet->getEnv("SERVER_NAME");
@@ -107,6 +111,7 @@ void CMtApi::Init()
 	g_documentRoot  = cnet->getEnv("DOCUMENT_ROOT");
 	g_dataRoot	= getPathName(g_documentRoot) + "/data";
 	g_progName	= PROGNAME;
+	g_progNameShort	= PROGNAMESHORT;
 	g_progCopyright	= COPYRIGHT;
 	g_progVersion	= "v" PROGVERSION;
 
@@ -128,14 +133,6 @@ CMtApi::~CMtApi()
 		delete csql;
 }
 
-string CMtApi::formatJson(string data, string tagBefore, string tagAfter)
-{
-	string html = readFile(g_dataRoot + "/template/json-format.html");
-	html = str_replace("@@@JSON_DATA@@@", data, html);
-
-	return tagBefore + html + tagAfter;
-}
-
 int CMtApi::run(int, char**)
 {
 	if (indexMode) {
@@ -143,31 +140,54 @@ int CMtApi::run(int, char**)
 		cout << chtml->tidyRepair(htmlOut.str(), 0) << endl;
 		return 0;
 	}
-	else if (queryString == "api") {
+
+	csql->connectMysql();
+
+	if (strEqual(queryString_mode, "api")) {
+		queryString_submode = cnet->getGetValue(getData, "sub");
+		if (strEqual(queryString_submode, "info")) {
+			g_queryMode = queryMode_Info;
+			if (!g_debugMode) {
+				progInfo_t pi;
+				cjson->resetProgInfoStruct(&pi);
+				csql->sqlGetProgInfo(&pi);
+				cout << cjson->progInfo2Json(&pi) << endl;
+				return 0;
+			}
+		}
+		else if (strEqual(queryString_submode, "listLivestream")) {
+			g_queryMode = queryMode_listLivestreams;
+		}
+		else if (strEqual(queryString_submode, "listChannels")) {
+			g_queryMode = queryMode_listChannels;
+		}
 	}
-	else if (queryString == "coolithek") {
-	}
-	else if ((queryString.find("page") == 3) && (queryString.length() == 7)) {
+	else if ((queryString_mode.find("page") == 3) && (queryString_mode.length() == 7)) {
 		/* 000page */
-		htmlOut << chtml->getErrorSite(atoi(queryString.c_str()), "");
+		htmlOut << chtml->getErrorSite(atoi(queryString_mode.c_str()), "");
 		cout << chtml->tidyRepair(htmlOut.str(), 0) << endl;
 		return 0;
 	}
 	else {
-		htmlOut << chtml->getErrorSite(404, queryString);
+		htmlOut << chtml->getErrorSite(404, queryString_mode);
 		cout << chtml->tidyRepair(htmlOut.str(), 0) << endl;
 		return 0;
 	}
 
+	if (g_queryMode == queryMode_None)
+		g_queryMode = queryMode_beginPOSTmode;
+
 	/* read POST data */
 	string inData;
 	cnet->readPostData(inData);
-	cnet->splitPostInput(inData, postData);
-	inJsonData = cnet->getPostValue(postData, "data1");
+	if (!inData.empty()) {
+		cnet->splitPostInput(inData, postData);
+		if (!postData.empty())
+			inJsonData = cnet->getPostValue(postData, "data1");
+	}
+	
 	if (inJsonData.empty())
 		inJsonData = readFile(g_dataRoot + "/template/test_1.json");
-
-	csql->connectMysql();
 
 	if (g_debugMode) {
 		int headerFlags = 0;
@@ -176,21 +196,34 @@ int CMtApi::run(int, char**)
 		headerFlags |= CHtml::includeApplication;
 		htmlOut << chtml->getHtmlHeader("Coolithek API", headerFlags);
 
-		string tmp1;
-		tmp1 = readFile(g_dataRoot + "/template/main-body.html");
+		string mainBody = readFile(g_dataRoot + "/template/main-body.html");
 		inJsonData = cjson->styledJson(inJsonData);
-		tmp1 = str_replace("@@@JSON_TEXTAREA@@@", inJsonData, tmp1);
-		tmp1 = str_replace("@@@DEBUG@@@", (g_debugMode)?"?d=true":"", tmp1);
-		htmlOut << tmp1;
+		if (g_queryMode < queryMode_beginPOSTmode)
+			mainBody = str_replace("@@@JSON_TEXTAREA@@@", "{}", mainBody);
+		else
+			mainBody = str_replace("@@@JSON_TEXTAREA@@@", inJsonData, mainBody);
+//		mainBody = str_replace("@@@DEBUG@@@", (g_debugMode)?"?d=true":"", mainBody);
+		htmlOut << mainBody;
 
 ///////
-		bool parseIO = cjson->parsePostData(inJsonData);
-		if (parseIO) {
-//			if (!inJsonData.empty())
-//				htmlOut << formatJson(inJsonData) << endl;
+		if (g_queryMode == queryMode_Info) {
+			progInfo_t pi;
+			cjson->resetProgInfoStruct(&pi);
+			csql->sqlGetProgInfo(&pi);
+			string tmp_json = cjson->progInfo2Json(&pi, "  ");
+			tmp_json = cnet->decodeData(tmp_json);
+			htmlOut << cjson->formatJson(tmp_json) << endl;
+		}
+		else if (g_queryMode >= queryMode_beginPOSTmode) {
+			bool parseIO = cjson->parsePostData(inJsonData);
+			if (parseIO) {
+//				if (!inJsonData.empty())
+//					htmlOut << cjson->formatJson(inJsonData) << endl;
+			}
 		}
 ///////
 
+//		htmlOut << mainBody;
 		if (!g_msgBoxText.empty())
 			htmlOut << addTextMsgBox();
 
@@ -201,7 +234,9 @@ int CMtApi::run(int, char**)
 	}
 	else {
 		string json = "{ \"error\": 1, \"head\": [], \"entry\": \"Unsupported parameter.\" }";
-		json = cjson->styledJson(json);
+//		json = cjson->styledJson(json);
+		json = cjson->styledJson(inJsonData);
+		json = cnet->encodeData(json);
 		cout << json << endl;
 	}
 

@@ -44,12 +44,12 @@ class CMtApi
 {
 	private:
 
-		string queryString;
+		string queryString_mode;
+		string queryString_submode;
 		bool indexMode;
 
 		void Init();
 		string addTextMsgBox(bool clear=false);
-		string formatJson(string data, string tagBefore="", string tagAfter="");
 
 	public:
 		CNet* cnet;

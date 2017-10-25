@@ -37,6 +37,7 @@ class CNet
 
 		string getEnv(string key);
 		string encodeData(string data);
+		string decodeData(string data);
 };
 
 

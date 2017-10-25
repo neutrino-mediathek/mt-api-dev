@@ -18,10 +18,12 @@ enum {
 };
 
 enum {
+	queryMode_None            = 0,
 	queryMode_Info            = 1,
 	queryMode_listChannels    = 2,
 	queryMode_listLivestreams = 3,
-	queryMode_listVideos      = 4
+	queryMode_beginPOSTmode   = 4,
+	queryMode_listVideos      = 5
 };
 
 typedef struct listVideo_t
@@ -35,6 +37,19 @@ typedef struct listVideo_t
 	time_t refTime;
 } listVideo_struct_t;
 
+typedef struct progInfo_t
+{
+	string version;
+	time_t vdate;
+	string mvversion;
+	time_t mvdate;
+	int    mventrys;
+	string progname;
+	string progversion;
+	string api;
+	string apiversion;
+} progInfo_struct_t;
+
 typedef struct query_header_t
 {
 	string      software;
@@ -43,7 +58,6 @@ typedef struct query_header_t
 	bool        isBeta;
 	int         vBeta;
 	int         mode;
-	bool        debug;
 	Json::Value data;
 } query_header_struct_t;
 

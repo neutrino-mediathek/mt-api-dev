@@ -8,14 +8,37 @@
       <tr>
         <td class="formatTD" style="width: 40%">
           <div class="jsonInput">
-            <form action="/api.html" method="post" accept-charset="UTF-8">
+            <form action="/api.html" method="post" accept-charset="UTF-8" onSubmit='if (data1.value == "") data1.value = "{}";'>
               <textarea name="data1" cols="50" rows="10">@@@JSON_TEXTAREA@@@</textarea>
               <br />
               <input type="submit" value=" send post data " />
             </form>
-            <form action="api.html" method="get" accept-charset="UTF-8">
-              <input type="submit" value=" reset " />
-            </form>
+            <table class="buttonTable">
+              <tr>
+                <td class="buttonTD">
+                  <form action="/api.html" method="get" accept-charset="UTF-8">
+                    <input type="submit" value=" reset " />
+                  </form>
+                </td>
+                <td class="buttonTD">
+                  <form action="/api/info" method="get" accept-charset="UTF-8">
+                    <input type="submit" value=" prog info " />
+                  </form>
+                </td>
+<!--
+                <td class="buttonTD">
+                  <form action="/api/listLivestream" method="get" accept-charset="UTF-8">
+                    <input type="submit" value=" list livestreams " />
+                  </form>
+                </td>
+                <td class="buttonTD">
+                  <form action="/api/listChannels" method="get" accept-charset="UTF-8">
+                    <input type="submit" value=" list channels " />
+                  </form>
+                </td>
+-->
+              </tr>
+            </table>
           </div>
         </td>
         <td class="formatTD">
@@ -40,6 +63,13 @@
         </div>
         <div id="sqlFooter"></div>
       </div>
+    </div>
+    <hr style='width: 80%;'>
+    <div id="jsonContainer">
+      <div id="jsonHeader">
+        <span class="jsonheader_txt">Json Output</span>
+      </div>
+      <div id="jsonContainer_inner">&nbsp;</div>
     </div>
 <script type="text/javascript">
   setFirstData();

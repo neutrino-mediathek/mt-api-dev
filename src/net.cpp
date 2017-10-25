@@ -97,7 +97,7 @@ string CNet::getPostValue(vector<string>& post_v, string key)
 {
 	for (size_t i = 0; i < post_v.size(); i++) {
 		vector<string> v = split(post_v[i], '=');
-		if (!v.empty() && (v[0] == key))
+		if (!v.empty() && (v[0] == key) && (!(v[1]).empty()))
 			return uri::decoded(v[1]);
 	}
 	return "";
@@ -106,6 +106,11 @@ string CNet::getPostValue(vector<string>& post_v, string key)
 string CNet::encodeData(string data)
 {
 	return uri::encoded(data);
+}
+
+string CNet::decodeData(string data)
+{
+	return uri::decoded(data);
 }
 
 /*
