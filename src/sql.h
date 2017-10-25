@@ -55,8 +55,8 @@ class CSql
 		bool connectMysql();
 		bool sqlListVideo(listVideo_t* lv);
 		bool sqlGetProgInfo(progInfo_t* pi);
+		bool sqlListLiveStreams(vector<livestreams_t>& ls);
 };
-
 
 
 #endif // __SQL_H__

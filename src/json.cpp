@@ -83,6 +83,13 @@ void CJson::resetProgInfoStruct(progInfo_t* pi)
 	pi->apiversion	= "";
 }
 
+void CJson::resetLiveStreamStruct(livestreams_t* ls)
+{
+	ls->title	= "";
+	ls->url		= "";
+	ls->parse_m3u8	= 0;
+}
+
 void CJson::resetQueryHeaderStruct(query_header_t* qh)
 {
 	qh->software  = "";
@@ -220,6 +227,29 @@ bool CJson::parsePostData(string jData)
 	}
 
 	return true;
+}
+
+string CJson::liveStreamList2Json(vector<livestreams_t>& ls, string indent/*=""*/)
+{
+	Json::Value json;
+	json["error"] = 0;
+
+	Json::Value head;
+	head["rows"] = ls.size();
+	json["head"] = head;
+	
+	Json::Value entry(Json::arrayValue);
+	for (size_t i = 0; i < ls.size(); i++) {
+		Json::Value entryData;
+		entryData["title"]	= ls[i].title;
+		entryData["url"]	= ls[i].url;
+		entryData["parse_m3u8"]	= ls[i].parse_m3u8;
+		entry.append(entryData);
+	}
+	ls.clear();
+	json["entry"] = entry;
+
+	return json2String(json, true, indent);
 }
 
 string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)

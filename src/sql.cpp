@@ -16,6 +16,7 @@
 
 #include "common/helpers.h"
 #include "mt-api.h"
+#include "json.h"
 #include "sql.h"
 
 extern CMtApi*		g_mainInstance;
@@ -228,8 +229,6 @@ bool CSql::sqlListVideo(listVideo_t* lv)
 
 bool CSql::sqlGetProgInfo(progInfo_t* pi)
 {
-	(void)pi;
-
 	if (mysqlCon == NULL)
 		return false;
 
@@ -271,3 +270,47 @@ bool CSql::sqlGetProgInfo(progInfo_t* pi)
 	return true;
 }
 
+bool CSql::sqlListLiveStreams(vector<livestreams_t>& ls)
+{
+	if (mysqlCon == NULL)
+		return false;
+
+	string sql = "";
+	sql += "SELECT title, url, parse_m3u8";
+	sql += " FROM " + tabVideo;
+	sql += " WHERE (theme LIKE 'Livestream' AND title LIKE '%Livestream%')";
+	sql += " ORDER BY channel, title ASC";
+	sql += " LIMIT 50;";
+
+	if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
+		show_error(__func__, __LINE__);
+		return false;
+	}
+
+	MYSQL_RES* result = mysql_store_result(mysqlCon);
+	if (result) {
+		if (mysql_num_fields(result) > 0) {
+			MYSQL_ROW row;
+			while ((row = mysql_fetch_row(result))) {
+				livestreams_t lss;
+				g_mainInstance->cjson->resetLiveStreamStruct(&lss);
+				uint64_t* lengths = mysql_fetch_lengths(result);
+				if ((row != NULL) && (row[0] != NULL)) {
+					int index = 0;
+					lss.title	= row2string(row, lengths, index++);
+					lss.url		= row2string(row, lengths, index++);
+					lss.parse_m3u8	= row2int(row, lengths, index++);
+				}
+				ls.push_back(lss);
+			}
+		}
+		mysql_free_result(result);
+	}
+
+	if (g_debugMode)
+		g_mainInstance->htmlOut << formatSql(sql, 1, "", "") << endl;
+
+	return true;
+}
+
+//	$query = "SELECT channel, count, lastest, oldest FROM " . MYSQL_TAB_INFO . " LIMIT 100;";

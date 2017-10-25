@@ -157,6 +157,12 @@ int CMtApi::run(int, char**)
 		}
 		else if (strEqual(queryString_submode, "listLivestream")) {
 			g_queryMode = queryMode_listLivestreams;
+			if (!g_debugMode) {
+				vector<livestreams_t> ls;
+				csql->sqlListLiveStreams(ls);
+				cout << cjson->liveStreamList2Json(ls) << endl;
+				return 0;
+			}
 		}
 		else if (strEqual(queryString_submode, "listChannels")) {
 			g_queryMode = queryMode_listChannels;
@@ -213,6 +219,15 @@ int CMtApi::run(int, char**)
 			string tmp_json = cjson->progInfo2Json(&pi, "  ");
 			tmp_json = cnet->decodeData(tmp_json);
 			htmlOut << cjson->formatJson(tmp_json) << endl;
+		}
+		else if (g_queryMode == queryMode_listLivestreams) {
+			vector<livestreams_t> ls;
+			csql->sqlListLiveStreams(ls);
+			string tmp_json = cjson->liveStreamList2Json(ls, "  ");
+			tmp_json = cnet->decodeData(tmp_json);
+			htmlOut << cjson->formatJson(tmp_json) << endl;
+		}
+		else if (g_queryMode == queryMode_listChannels) {
 		}
 		else if (g_queryMode >= queryMode_beginPOSTmode) {
 			bool parseIO = cjson->parsePostData(inJsonData);

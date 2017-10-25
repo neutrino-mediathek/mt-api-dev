@@ -50,6 +50,13 @@ typedef struct progInfo_t
 	string apiversion;
 } progInfo_struct_t;
 
+typedef struct livestreams_t
+{
+	string title;
+	string url;
+	int    parse_m3u8;
+} livestreams_struct_t;
+
 typedef struct query_header_t
 {
 	string      software;
