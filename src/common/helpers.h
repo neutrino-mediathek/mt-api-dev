@@ -41,6 +41,11 @@ const char *cstr_replace(const char *search, const char *replace, const char *te
 string str_tolower(string s);
 string str_toupper(string s);
 
+bool strEqual(const char* a, const char* b);
+bool strEqual(string a, const char* b);
+bool strEqual(const char* a, string b);
+bool strEqual(string a, string b);
+
 string getPathName(string &path);
 string getBaseName(string &path);
 string getFileName(string &file);

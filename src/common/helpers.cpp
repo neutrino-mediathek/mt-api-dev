@@ -232,6 +232,39 @@ string str_toupper(string s)
 	return s;
 }
 
+bool strEqual(const char* a, const char* b)
+{
+	if ((a == NULL) && (b == NULL))
+		return true;
+
+	string a_ = (a == NULL) ? "" : static_cast<string>(a);
+	string b_ = (b == NULL) ? "" : static_cast<string>(b);
+	return strEqual(a_, b_);
+}
+
+bool strEqual(string a, const char* b)
+{
+	string b_ = (b == NULL) ? "" : static_cast<string>(b);
+	return strEqual(a, b_);
+}
+
+bool strEqual(const char* a, string b)
+{
+	string a_ = (a == NULL) ? "" : static_cast<string>(a);
+	return strEqual(a_, b);
+}
+
+bool strEqual(string a, string b)
+{
+	if (a.empty() && b.empty())
+		return true;
+
+	if (a.empty() || b.empty())
+		return false;
+
+	return (a.compare(b) == 0);
+}
+
 string _getPathName(string &path, string sep)
 {
 	size_t pos = path.find_last_of(sep);
