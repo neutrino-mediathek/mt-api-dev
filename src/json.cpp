@@ -10,17 +10,20 @@
 #include <fstream>
 #include <sstream>
 #include <climits>
+#include <memory>
 
 #include "llvm/Support/FormatVariadic.h"
 
 #include "common/helpers.h"
 #include "json.h"
 #include "sql.h"
+#include "net.h"
 #include "mt-api.h"
 
 extern CMtApi*		g_mainInstance;
 extern bool		g_debugMode;
 extern int		g_apiMode;
+extern int		g_queryMode;
 extern string		g_msgBoxText;
 
 CJson::CJson()
@@ -30,7 +33,7 @@ CJson::CJson()
 
 void CJson::Init()
 {
-	cooliSig = "coolithek NeutrinoHD";
+	cooliSig = "Neutrino Mediathek";
 }
 
 CJson::~CJson()
@@ -66,6 +69,19 @@ void CJson::parseError(const char* func, int line, string msg)
 	errorMsg(func, line, "Error parsing json data" + msg_);
 }
 
+void CJson::resetProgInfoStruct(progInfo_t* pi)
+{
+	pi->version	= "";
+	pi->vdate	= 0;
+	pi->mvversion	= "";
+	pi->mvdate	= 0;
+	pi->mventrys	= 0;
+	pi->progname	= "";
+	pi->progversion	= "";
+	pi->api		= "";
+	pi->apiversion	= "";
+}
+
 void CJson::resetQueryHeaderStruct(query_header_t* qh)
 {
 	qh->software  = "";
@@ -74,7 +90,6 @@ void CJson::resetQueryHeaderStruct(query_header_t* qh)
 	qh->isBeta    = 0;
 	qh->vBeta     = false;
 	qh->mode      = 0;
-	qh->debug     = false;
 	qh->data.clear();
 }
 
@@ -163,9 +178,6 @@ bool CJson::parsePostData(string jData)
 			else if (name == "mode") {
 				qh.mode = safeStrToInt(it->asString());
 			}
-			else if (name == "debug") {
-				g_debugMode = asBool(it);
-			}
 			else if (name == "data") {
 				qh.data = *it;
 			}
@@ -176,6 +188,7 @@ bool CJson::parsePostData(string jData)
 		return false;
 	}
 	if (qh.data.isObject()) {
+		g_queryMode = qh.mode;
 		if (qh.software != cooliSig) {
 			errorMsg(__func__, __LINE__, "The given signature is ["+qh.software+"], but ["+cooliSig+"] is expected.");
 			return false;
@@ -208,3 +221,62 @@ bool CJson::parsePostData(string jData)
 	return true;
 }
 
+string CJson::progInfo2Json(progInfo_t* pi)
+{
+	Json::Value json;
+	json["error"] = 0;
+
+	Json::Value head(Json::arrayValue);
+	Json::Value headData;
+#if 0
+	headData["test1"] = "Tescht 1";
+	headData["test2"] = "Tescht 2";
+	head.append(headData);
+#endif
+	json["head"] = head;
+
+	Json::Value entry(Json::arrayValue);
+	Json::Value entryData;
+	entryData["version"]		= pi->version;
+	entryData["vdate"]		= pi->vdate;
+	entryData["mvversion"]		= pi->mvversion;
+	entryData["mvdate"]		= pi->mvdate;
+	entryData["mventrys"]		= pi->mventrys;
+	entryData["progname"]		= pi->progname;
+	entryData["progversion"]	= pi->progversion;
+	entryData["api"]		= pi->api;
+	entryData["apiversion"]		= pi->apiversion;
+	entry.append(entryData);
+	json["entry"] = entry;
+
+	return json2String(json, true);
+}
+
+string CJson::jsonErrMsg(string msg, int err/*=1*/)
+{
+	Json::Value json;
+	Json::Value head(Json::arrayValue);
+	Json::Value headData;
+	json["head"] = head;
+
+	json["error"] = err;
+	json["entry"] = msg;
+
+	return json2String(json, true);
+}
+
+string CJson::json2String(Json::Value json, bool uriEncode/*=true*/, string indent/*=""*/)
+{
+	Json::StreamWriterBuilder builder;
+	builder["commentStyle"] = "None";
+	builder["indentation"] = indent;
+	unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+
+	stringstream ss;
+	writer->write(json, &ss);
+	string ret_s = ss.str();
+	if (uriEncode)
+		ret_s = g_mainInstance->cnet->encodeData(ret_s);
+
+	return ret_s;
+}

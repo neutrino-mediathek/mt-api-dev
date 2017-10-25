@@ -35,9 +35,13 @@ class CJson
 		CJson();
 		~CJson();
 
+		void resetProgInfoStruct(progInfo_t* pi);
 		bool parsePostData(string jData);
 		string styledJson(string json);
 		string styledJson(Json::Value json);
+		string progInfo2Json(progInfo_t* pi);
+		string jsonErrMsg(string msg, int err=1);
+		string json2String(Json::Value json, bool uriEncode=true, string indent="");
 };
 
 
