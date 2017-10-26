@@ -241,7 +241,7 @@ string CJson::liveStreamList2Json(vector<livestreams_t>& ls, string indent/*=""*
 	Json::Value entry(Json::arrayValue);
 	for (size_t i = 0; i < ls.size(); i++) {
 		Json::Value entryData;
-		entryData["title"]	= ls[i].title;
+		entryData["title"]	= trim(str_replace("Livestream", "", ls[i].title));
 		entryData["url"]	= ls[i].url;
 		entryData["parse_m3u8"]	= ls[i].parse_m3u8;
 		entry.append(entryData);
