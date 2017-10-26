@@ -15,6 +15,11 @@
 #include <iomanip>
 #include <ctime>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include <cppcodec/base64_rfc4648.hpp>
+#pragma GCC diagnostic pop
+
 #include "helpers.h"
 
 time_t duration2time(string t)
@@ -406,4 +411,24 @@ int safeStrToInt(string val)
 	tmp_l = min(tmp_l, static_cast<long>(numeric_limits<int>::max()));
 	tmp_l = max(tmp_l, static_cast<long>(numeric_limits<int>::min()));
 	return static_cast<int>(tmp_l);
+}
+
+string base64encode(const char* data, size_t len)
+{
+	return cppcodec::base64_rfc4648::encode(data, len);
+}
+
+string base64encode(string data)
+{
+	return base64encode(data.c_str(), data.length());
+}
+
+vector<unsigned char> base64decode_bin(string data)
+{
+	return cppcodec::base64_rfc4648::decode(data.c_str(), data.length());
+}
+
+string base64decode_str(string data)
+{
+	return cppcodec::base64_rfc4648::decode<string>(data.c_str(), data.length());
 }

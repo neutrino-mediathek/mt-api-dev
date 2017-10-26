@@ -61,4 +61,9 @@ bool parseJsonFromFile(string& jFile, Json::Value *root, string *errMsg);
 bool parseJsonFromString(string& jData, Json::Value *root, string *errMsg);
 int safeStrToInt(string val);
 
+string base64encode(const char* data, size_t len);
+string base64encode(string data);
+vector<unsigned char> base64decode_bin(string data);
+string base64decode_str(string data);
+
 #endif // __helpers_h__
