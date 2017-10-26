@@ -76,12 +76,9 @@ CMtApi::CMtApi()
 
 string CMtApi::addTextMsgBox(bool clear/*=false*/)
 {
-	g_msgBoxText = "\\n" + str_replace("\n", "\\n", g_msgBoxText);
-	string rep = "@X@";
-	g_msgBoxText = str_replace("\"", rep, g_msgBoxText);
+	g_msgBoxText = base64encode(g_msgBoxText);
 	string html = readFile(g_dataRoot + "/template/msgbox.html");
 	html = str_replace("@@@MSGTXT@@@", (clear)?"":g_msgBoxText, html);
-	html = str_replace("@@@REP@@@", rep, html);
 	g_msgBoxText = "";
 	return html;
 }

@@ -17,24 +17,23 @@ function clearMsgBox() {
 	document.getElementById('msgPre').innerHTML = msgTxt;
 }
 
-function addTextMsgBox(txt, rep) {
+function addTextMsgBox(txt) {
 	if (txt == "") {
 		clearMsgBox();
 		return;
 	}
 	var tmpTxt = document.getElementById('msgPre').innerHTML;
-	var rep2 = new RegExp(rep, "g");
-	txt = txt.replace(rep2, '"');
+	txt = Base64.decode(txt)
 	document.getElementById('msgPre').innerHTML = tmpTxt + txt;
 }
 
-function jsonBox(json, rep) {
-	var rep2 = new RegExp(rep, "g");
-	json = json.replace(rep2, '"');
+function jsonBox(json) {
+	json = Base64.decode(json)
 	document.getElementById("jsonContainer_inner").innerHTML = "<pre>" + json + "</pre>";
 }
 
 function sqlBox(data, id) {
+	data = Base64.decode(data)
 	var sql = sqlFormatter.format(data);
 	document.getElementById("sqlCode_" + id).innerHTML = "<pre>" + sql + "</pre>";
 }

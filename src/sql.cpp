@@ -85,6 +85,7 @@ bool CSql::connectMysql()
 string CSql::formatSql(string data, int id, string tagBefore, string tagAfter)
 {
 	string html = readFile(g_dataRoot + "/template/sql-format.html");
+	data = base64encode(data);
 	html = str_replace("@@@SQL_DATA@@@", data, html);
 	html = str_replace("@@@ID@@@", to_string(id), html);
 

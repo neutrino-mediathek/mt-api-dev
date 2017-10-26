@@ -315,11 +315,8 @@ string CJson::json2String(Json::Value json, bool uriEncode/*=true*/, string inde
 string CJson::formatJson(string data, string tagBefore, string tagAfter)
 {
 	string html = readFile(g_dataRoot + "/template/json-format.html");
-	data = str_replace("\n", "\\n", data);
-	string rep = "@X@";
-	data = str_replace("\"", rep, data);
+	data = base64encode(data);
 	html = str_replace("@@@JSON_DATA@@@", data, html);
-	html = str_replace("@@@REP@@@", rep, html);
 
 	return tagBefore + html + tagAfter;
 }
