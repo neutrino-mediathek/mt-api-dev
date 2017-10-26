@@ -71,6 +71,7 @@ ENABLE_SANITIZER	 = 0
 endif
 
 INCLUDES	 =
+INCLUDES	+= -I./src
 INCLUDES	+= -I/usr/include/mariadb
 INCLUDES	+= -I/usr/include/tidy
 INCLUDES	+= -I/usr/include/boost
