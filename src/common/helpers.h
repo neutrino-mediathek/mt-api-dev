@@ -59,6 +59,7 @@ string endlbr();
 string readFile(string file);
 bool parseJsonFromFile(string& jFile, Json::Value *root, string *errMsg);
 bool parseJsonFromString(string& jData, Json::Value *root, string *errMsg);
+string writeJson2String(Json::Value json, string indent="");
 int safeStrToInt(string val);
 
 string base64encode(const char* data, size_t len);

@@ -398,6 +398,21 @@ bool parseJsonFromString(string& jData, Json::Value *root, string *errMsg)
 	return ret;
 }
 
+string writeJson2String(Json::Value json, string indent/*=""*/)
+{
+	Json::StreamWriterBuilder builder;
+	builder["commentStyle"] = "None";
+	builder["indentation"] = indent;
+	Json::StreamWriter* writer(builder.newStreamWriter());
+
+	stringstream ss;
+	writer->write(json, &ss);
+	string ret_s = ss.str();
+
+	delete writer;
+	return ret_s;
+}
+
 int safeStrToInt(string val)
 {
 	if (val.empty())
