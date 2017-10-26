@@ -330,14 +330,8 @@ string CJson::jsonErrMsg(string msg, int err/*=1*/)
 
 string CJson::json2String(Json::Value json, bool uriEncode/*=true*/, string indent/*=""*/)
 {
-	Json::StreamWriterBuilder builder;
-	builder["commentStyle"] = "None";
-	builder["indentation"] = indent;
-	unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+	string ret_s = writeJson2String(json, indent);
 
-	stringstream ss;
-	writer->write(json, &ss);
-	string ret_s = ss.str();
 	if (uriEncode)
 		ret_s = g_mainInstance->cnet->encodeData(ret_s);
 
