@@ -314,4 +314,45 @@ bool CSql::sqlListLiveStreams(vector<livestreams_t>& ls)
 	return true;
 }
 
-//	$query = "SELECT channel, count, lastest, oldest FROM " . MYSQL_TAB_INFO . " LIMIT 100;";
+bool CSql::sqlListChannels(vector<channels_t>& ch)
+{
+	if (mysqlCon == NULL)
+		return false;
+
+	string sql = "";
+	sql += "SELECT channel, count, latest, oldest";
+	sql += " FROM " + tabChannelinfo;
+	sql += " ORDER BY channel ASC";
+	sql += " LIMIT 50;";
+
+	if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
+		show_error(__func__, __LINE__);
+		return false;
+	}
+
+	MYSQL_RES* result = mysql_store_result(mysqlCon);
+	if (result) {
+		if (mysql_num_fields(result) > 0) {
+			MYSQL_ROW row;
+			while ((row = mysql_fetch_row(result))) {
+				channels_t chs;
+				g_mainInstance->cjson->resetChannelStruct(&chs);
+				uint64_t* lengths = mysql_fetch_lengths(result);
+				if ((row != NULL) && (row[0] != NULL)) {
+					int index = 0;
+					chs.channel	= row2string(row, lengths, index++);
+					chs.count	= row2int(row, lengths, index++);
+					chs.latest	= row2int(row, lengths, index++);
+					chs.oldest	= row2int(row, lengths, index++);
+				}
+				ch.push_back(chs);
+			}
+		}
+		mysql_free_result(result);
+	}
+
+	if (g_debugMode)
+		g_mainInstance->htmlOut << formatSql(sql, 1, "", "") << endl;
+
+	return true;
+}

@@ -90,6 +90,14 @@ void CJson::resetLiveStreamStruct(livestreams_t* ls)
 	ls->parse_m3u8	= 0;
 }
 
+void CJson::resetChannelStruct(channels_t* ch)
+{
+	ch->channel	= "";
+	ch->count	= 0;
+	ch->latest	= 0;
+	ch->oldest	= 0;
+}
+
 void CJson::resetQueryHeaderStruct(query_header_t* qh)
 {
 	qh->software  = "";
@@ -247,6 +255,30 @@ string CJson::liveStreamList2Json(vector<livestreams_t>& ls, string indent/*=""*
 		entry.append(entryData);
 	}
 	ls.clear();
+	json["entry"] = entry;
+
+	return json2String(json, true, indent);
+}
+
+string CJson::channelList2Json(vector<channels_t>& ch, string indent/*=""*/)
+{
+	Json::Value json;
+	json["error"] = 0;
+
+	Json::Value head;
+	head["rows"] = ch.size();
+	json["head"] = head;
+	
+	Json::Value entry(Json::arrayValue);
+	for (size_t i = 0; i < ch.size(); i++) {
+		Json::Value entryData;
+		entryData["channel"]	= ch[i].channel;
+		entryData["count"]	= ch[i].count;
+		entryData["latest"]	= ch[i].latest;
+		entryData["oldest"]	= ch[i].oldest;
+		entry.append(entryData);
+	}
+	ch.clear();
 	json["entry"] = entry;
 
 	return json2String(json, true, indent);

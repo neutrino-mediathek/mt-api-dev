@@ -37,11 +37,13 @@ class CJson
 
 		void resetProgInfoStruct(progInfo_t* pi);
 		void resetLiveStreamStruct(livestreams_t* ls);
+		void resetChannelStruct(channels_t* ch);
 		bool parsePostData(string jData);
 		string styledJson(string json);
 		string styledJson(Json::Value json);
 		string progInfo2Json(progInfo_t* pi, string indent="");
 		string liveStreamList2Json(vector<livestreams_t>& ls, string indent="");
+		string channelList2Json(vector<channels_t>& ch, string indent="");
 		string jsonErrMsg(string msg, int err=1);
 		string json2String(Json::Value json, bool uriEncode=true, string indent="");
 		string formatJson(string data, string tagBefore="", string tagAfter="");

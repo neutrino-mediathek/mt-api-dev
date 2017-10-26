@@ -163,6 +163,12 @@ int CMtApi::run(int, char**)
 		}
 		else if (strEqual(queryString_submode, "listChannels")) {
 			g_queryMode = queryMode_listChannels;
+			if (!g_debugMode) {
+				vector<channels_t> ch;
+				csql->sqlListChannels(ch);
+				cout << cjson->channelList2Json(ch) << endl;
+				return 0;
+			}
 		}
 	}
 	else if ((queryString_mode.find("page") == 3) && (queryString_mode.length() == 7)) {
@@ -225,6 +231,11 @@ int CMtApi::run(int, char**)
 			htmlOut << cjson->formatJson(tmp_json) << endl;
 		}
 		else if (g_queryMode == queryMode_listChannels) {
+			vector<channels_t> ch;
+			csql->sqlListChannels(ch);
+			string tmp_json = cjson->channelList2Json(ch, "  ");
+			tmp_json = cnet->decodeData(tmp_json);
+			htmlOut << cjson->formatJson(tmp_json) << endl;
 		}
 		else if (g_queryMode >= queryMode_beginPOSTmode) {
 			bool parseIO = cjson->parsePostData(inJsonData);

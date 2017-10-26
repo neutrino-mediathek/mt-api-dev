@@ -56,6 +56,7 @@ class CSql
 		bool sqlListVideo(listVideo_t* lv);
 		bool sqlGetProgInfo(progInfo_t* pi);
 		bool sqlListLiveStreams(vector<livestreams_t>& ls);
+		bool sqlListChannels(vector<channels_t>& ch);
 };
 
 

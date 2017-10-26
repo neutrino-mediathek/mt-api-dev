@@ -57,6 +57,14 @@ typedef struct livestreams_t
 	int    parse_m3u8;
 } livestreams_struct_t;
 
+typedef struct channels_t
+{
+	string channel;
+	int    count;
+	time_t latest;
+	time_t oldest;
+} channels_struct_t;
+
 typedef struct query_header_t
 {
 	string      software;
