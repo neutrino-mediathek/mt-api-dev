@@ -57,6 +57,7 @@ bool			g_debugMode;
 int			g_apiMode;
 int			g_queryMode;
 string			g_msgBoxText;
+string			g_jsonError;
 
 void myExit(int val);
 
@@ -170,6 +171,33 @@ int CMtApi::run(int, char**)
 				return 0;
 			}
 		}
+		else {
+			/* read POST data */
+			string inData;
+			cnet->readPostData(inData);
+			if (!inData.empty()) {
+				cnet->splitPostInput(inData, postData);
+				if (!postData.empty())
+					inJsonData = cnet->getPostValue(postData, "data1");
+			}
+			if (inJsonData.empty())
+				inJsonData = readFile(g_dataRoot + "/template/test_1.json");
+
+			if (!g_debugMode) {
+				bool parseIO = cjson->parsePostData(inJsonData);
+				if (parseIO) {
+					if (g_queryMode == queryMode_listVideos) {
+						cout << cjson->videoList2Json() << endl;
+					}
+				}
+				else {
+					string msg = (g_jsonError.empty()) ? "API Error" : g_jsonError;
+					cout << cjson->jsonErrMsg(msg) << endl;
+				}
+
+				return 0;
+			}
+		}
 	}
 	else if ((queryString_mode.find("page") == 3) && (queryString_mode.length() == 7)) {
 		/* 000page */
@@ -186,18 +214,6 @@ int CMtApi::run(int, char**)
 	if (g_queryMode == queryMode_None)
 		g_queryMode = queryMode_beginPOSTmode;
 
-	/* read POST data */
-	string inData;
-	cnet->readPostData(inData);
-	if (!inData.empty()) {
-		cnet->splitPostInput(inData, postData);
-		if (!postData.empty())
-			inJsonData = cnet->getPostValue(postData, "data1");
-	}
-	
-	if (inJsonData.empty())
-		inJsonData = readFile(g_dataRoot + "/template/test_1.json");
-
 	if (g_debugMode) {
 		int headerFlags = 0;
 		headerFlags |= CHtml::includeCopyR;
@@ -211,10 +227,8 @@ int CMtApi::run(int, char**)
 			mainBody = str_replace("@@@JSON_TEXTAREA@@@", "{}", mainBody);
 		else
 			mainBody = str_replace("@@@JSON_TEXTAREA@@@", inJsonData, mainBody);
-//		mainBody = str_replace("@@@DEBUG@@@", (g_debugMode)?"?d=true":"", mainBody);
 		htmlOut << mainBody;
 
-///////
 		if (g_queryMode == queryMode_Info) {
 			progInfo_t pi;
 			cjson->resetProgInfoStruct(&pi);
@@ -240,13 +254,14 @@ int CMtApi::run(int, char**)
 		else if (g_queryMode >= queryMode_beginPOSTmode) {
 			bool parseIO = cjson->parsePostData(inJsonData);
 			if (parseIO) {
-//				if (!inJsonData.empty())
-//					htmlOut << cjson->formatJson(inJsonData) << endl;
+				if (g_queryMode == queryMode_listVideos) {
+					string tmp_json = cjson->videoList2Json("  ");
+					tmp_json = cnet->decodeData(tmp_json);
+					htmlOut << cjson->formatJson(tmp_json) << endl;
+				}
 			}
 		}
-///////
 
-//		htmlOut << mainBody;
 		if (!g_msgBoxText.empty())
 			htmlOut << addTextMsgBox();
 

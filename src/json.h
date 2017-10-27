@@ -20,13 +20,15 @@ class CJson
 {
 	private:
 
-		string cooliSig;
+		string cooliSig1;
+		string cooliSig2;
+		string cooliSig3;
 
 		void Init();
 		void errorMsg(const char* func, int line, string msg="");
 		void parseError(const char* func, int line, string msg="");
 		void resetQueryHeaderStruct(query_header_t* qh);
-		void resetListVideoStruct(listVideo_t* lv);
+		void resetCmdListVideoStruct(cmdListVideo_t* lv);
 		bool parseListVideo(Json::Value root);
 		bool asBool(Json::Value::iterator it);
 
@@ -35,15 +37,21 @@ class CJson
 		CJson();
 		~CJson();
 
+		listVideoHead_t listVideoHead;
+		vector<listVideo_t> listVideo_v;
+
 		void resetProgInfoStruct(progInfo_t* pi);
 		void resetLiveStreamStruct(livestreams_t* ls);
 		void resetChannelStruct(channels_t* ch);
+		void resetListVideoStruct(listVideo_t* lv);
+		void resetListVideoHeadStruct(listVideoHead_t* lvh);
 		bool parsePostData(string jData);
 		string styledJson(string json);
 		string styledJson(Json::Value json);
 		string progInfo2Json(progInfo_t* pi, string indent="");
 		string liveStreamList2Json(vector<livestreams_t>& ls, string indent="");
 		string channelList2Json(vector<channels_t>& ch, string indent="");
+		string videoList2Json(string indent="");
 		string jsonErrMsg(string msg, int err=1);
 		string json2String(Json::Value json, bool uriEncode=true, string indent="");
 		string formatJson(string data, string tagBefore="", string tagAfter="");

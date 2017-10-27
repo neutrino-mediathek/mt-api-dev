@@ -25,6 +25,7 @@ extern bool		g_debugMode;
 extern int		g_apiMode;
 extern int		g_queryMode;
 extern string		g_msgBoxText;
+extern string		g_jsonError;
 extern string		g_dataRoot;
 
 CJson::CJson()
@@ -34,7 +35,9 @@ CJson::CJson()
 
 void CJson::Init()
 {
-	cooliSig = "Neutrino Mediathek";
+	cooliSig1 = "Neutrino Mediathek";
+	cooliSig2 = cooliSig1 + " - CST";
+	cooliSig3 = cooliSig1 + "";
 }
 
 CJson::~CJson()
@@ -62,6 +65,7 @@ void CJson::errorMsg(const char* func, int line, string msg)
 	g_msgBoxText = llvm::formatv("<span style='color: OrangeRed'>[{0}:{1}] {2}</span>",
 				     func, line, ((msg.empty())?"Error":msg));
 
+	g_jsonError = llvm::formatv("[{0}:{1}]\n{2}", func, line, ((msg.empty())?"Error":msg));
 }
 
 void CJson::parseError(const char* func, int line, string msg)
@@ -109,15 +113,46 @@ void CJson::resetQueryHeaderStruct(query_header_t* qh)
 	qh->data.clear();
 }
 
+void CJson::resetCmdListVideoStruct(cmdListVideo_t* clv)
+{
+	clv->channel  = "";
+	clv->timeMode = 0;
+	clv->epoch    = 0;
+	clv->duration = 0;
+	clv->limit    = 0;
+	clv->start    = 0;
+	clv->refTime  = 0;
+}
+
 void CJson::resetListVideoStruct(listVideo_t* lv)
 {
-	lv->channel  = "";
-	lv->timeMode = 0;
-	lv->epoch    = 0;
-	lv->duration = 0;
-	lv->limit    = 0;
-	lv->start    = 0;
-	lv->refTime  = 0;
+	lv->channel        = "";
+	lv->theme          = "";
+	lv->title          = "";
+	lv->description    = "";
+	lv->website        = "";
+	lv->subtitle       = "";
+	lv->url            = "";
+	lv->url_small      = "";
+	lv->url_hd         = "";
+	lv->url_rtmp       = "";
+	lv->url_rtmp_small = "";
+	lv->url_rtmp_hd    = "";
+	lv->url_history    = "";
+	lv->date_unix      = 0;
+	lv->duration       = 0;
+	lv->size_mb        = 0;
+	lv->geo            = "";
+	lv->parse_m3u8     = 0;
+}
+
+void CJson::resetListVideoHeadStruct(listVideoHead_t* lvh)
+{
+	lvh->start   = 0;
+	lvh->end     = 0;
+	lvh->rows    = 0;
+	lvh->total   = 0;
+	lvh->refTime = 0;
 }
 
 bool CJson::asBool(Json::Value::iterator it)
@@ -129,8 +164,8 @@ bool CJson::asBool(Json::Value::iterator it)
 
 bool CJson::parseListVideo(Json::Value root)
 {
-	listVideo_t lv;
-	resetListVideoStruct(&lv);
+	cmdListVideo_t lv;
+	resetCmdListVideoStruct(&lv);
 	for (Json::Value::iterator it = root.begin(); it != root.end(); ++it) {
 		string name = it.name();
 		if (name == "channel") {
@@ -156,7 +191,7 @@ bool CJson::parseListVideo(Json::Value root)
 		}
 	}
 
-	g_mainInstance->csql->sqlListVideo(&lv);
+	g_mainInstance->csql->sqlListVideo(&lv, &listVideoHead, listVideo_v);
 
 	return true;
 }
@@ -205,8 +240,15 @@ bool CJson::parsePostData(string jData)
 	}
 	if (qh.data.isObject()) {
 		g_queryMode = qh.mode;
-		if (qh.software != cooliSig) {
-			errorMsg(__func__, __LINE__, "The given signature is ["+qh.software+"], but ["+cooliSig+"] is expected.");
+		if (!strEqual(qh.software, cooliSig1) && !strEqual(qh.software, cooliSig2) && !strEqual(qh.software, cooliSig3)) {
+#if 0
+			string tmp_msg = llvm::formatv("The given signature is '{0}',\nbut '{1}' or '{2}'\nor '{3}' is expected.",
+						       qh.software, cooliSig1, cooliSig2, cooliSig3);
+#else
+			string tmp_msg = llvm::formatv("The given signature is '{0}',\nbut '{1}' or '{2}' is expected.",
+						       qh.software, cooliSig1, cooliSig2);
+#endif
+			errorMsg(__func__, __LINE__, tmp_msg);
 			return false;
 		}
 		if (qh.mode == queryMode_Info) {
@@ -284,6 +326,50 @@ string CJson::channelList2Json(vector<channels_t>& ch, string indent/*=""*/)
 	return json2String(json, true, indent);
 }
 
+string CJson::videoList2Json(string indent/*=""*/)
+{
+	Json::Value json;
+	json["error"] = 0;
+
+	Json::Value head;
+	head["start"]	= listVideoHead.start;
+	head["end"]	= listVideoHead.end;
+	head["rows"]	= listVideoHead.rows;
+	head["total"]	= listVideoHead.total;
+	head["refTime"]	= listVideoHead.refTime;
+	json["head"]	= head;
+
+	Json::Value entry(Json::arrayValue);
+	for (size_t i = 0; i < listVideo_v.size(); i++) {
+		Json::Value entryData;
+		entryData["channel"]		= listVideo_v[i].channel;
+		entryData["theme"]		= listVideo_v[i].theme;
+		entryData["title"]		= listVideo_v[i].title;
+		entryData["description"]	= listVideo_v[i].description;
+		entryData["subtitle"]		= listVideo_v[i].subtitle;
+		entryData["url"]		= listVideo_v[i].url;
+		entryData["url_small"]		= listVideo_v[i].url_small;
+		entryData["url_hd"]		= listVideo_v[i].url_hd;
+		entryData["date_unix"]		= listVideo_v[i].date_unix;
+		entryData["duration"]		= listVideo_v[i].duration;
+		entryData["geo"]		= listVideo_v[i].geo;
+		entryData["parse_m3u8"]		= listVideo_v[i].parse_m3u8;
+#if 0
+		entryData["url_rtmp"]		= listVideo_v[i].url_rtmp;
+		entryData["url_rtmp_small"]	= listVideo_v[i].url_rtmp_small;
+		entryData["url_rtmp_hd"]	= listVideo_v[i].url_rtmp_hd;
+		entryData["url_history"]	= listVideo_v[i].url_history;
+		entryData["website"]		= listVideo_v[i].website;
+		entryData["size_mb"]		= listVideo_v[i].size_mb;
+#endif
+		entry.append(entryData);
+	}
+	listVideo_v.clear();
+	json["entry"] = entry;
+
+	return json2String(json, true, indent);
+}
+
 string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)
 {
 	Json::Value json;
@@ -291,11 +377,6 @@ string CJson::progInfo2Json(progInfo_t* pi, string indent/*=""*/)
 
 	Json::Value head(Json::arrayValue);
 	Json::Value headData;
-#if 0
-	headData["test1"] = "Tescht 1";
-	headData["test2"] = "Tescht 2";
-	head.append(headData);
-#endif
 	json["head"] = head;
 
 	Json::Value entry(Json::arrayValue);

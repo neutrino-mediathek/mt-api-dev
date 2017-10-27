@@ -26,7 +26,7 @@ enum {
 	queryMode_listVideos      = 5
 };
 
-typedef struct listVideo_t
+typedef struct cmdListVideo_t
 {
 	string channel;
 	int    timeMode;
@@ -35,7 +35,38 @@ typedef struct listVideo_t
 	int    limit;
 	int    start;
 	time_t refTime;
+} cmdListVideo_struct_t;
+
+typedef struct listVideo_t
+{
+	string channel;
+	string theme;
+	string title;
+	string description;
+	string website;
+	string subtitle;
+	string url;
+	string url_small;
+	string url_hd;
+	string url_rtmp;
+	string url_rtmp_small;
+	string url_rtmp_hd;
+	string url_history;
+	time_t date_unix;
+	int    duration;
+	int    size_mb;
+	string geo;
+	int parse_m3u8;
 } listVideo_struct_t;
+
+typedef struct listVideoHead_t
+{
+	int    start;
+	int    end;
+	int    rows;
+	int    total;
+	time_t refTime;
+} listVideoHead_struct_t;
 
 typedef struct progInfo_t
 {

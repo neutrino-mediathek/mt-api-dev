@@ -36,7 +36,7 @@ void CSql::Init()
 {
 	mysqlCon = NULL;
 	pwFile		= g_dataRoot + "/.passwd/sqlpasswd";
-	usedDB		= "mediathek_1_TEST";
+	usedDB		= "mediathek_1";
 	tabChannelinfo	= "channelinfo";
 	tabVersion	= "version";
 	tabVideo	= "video";
@@ -134,7 +134,7 @@ int CSql::getResultCount(string where)
 	string sql = "";
         sql += "SELECT COUNT(id) AS anz FROM " + tabVideo + " " + where + ";";
 
-	double timer = startTimer();
+//	double timer = startTimer();
 
 	if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
 		show_error(__func__, __LINE__);
@@ -155,15 +155,7 @@ int CSql::getResultCount(string where)
 		mysql_free_result(result);
 	}
 
-	string timer_s = getTimer(timer, "Duration sql query: ");
-
-ostringstream oss;
-oss << "ret: " << ret << endl;
-g_msgBoxText += oss.str();
-oss.str(string());
-oss.clear();
-oss << timer_s << endl;
-g_msgBoxText += oss.str();
+//	string timer_s = getTimer(timer, "Duration sql query 1: ");
 
 	if (g_debugMode)
 		g_mainInstance->htmlOut << formatSql(sql, 1, "", "") << endl;
@@ -171,17 +163,20 @@ g_msgBoxText += oss.str();
 	return ret;
 }
 
-bool CSql::sqlListVideo(listVideo_t* lv)
+bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv)
 {
 	if (mysqlCon == NULL)
 		return false;
 
-	time_t now      = (lv->refTime == 0) ? time(0) : lv->refTime;
+	time_t now      = (clv->refTime == 0) ? time(0) : clv->refTime;
 	time_t fromTime = 0;
 	time_t toTime   = 0;
 
-	time_t epoch = lv->epoch;
-	/* (lv->epoch < 0) => all data */
+	g_mainInstance->cjson->resetListVideoHeadStruct(lvh);
+	lvh->refTime	= now;
+
+	time_t epoch = clv->epoch;
+	/* (clv->epoch < 0) => all data */
 	if (epoch == 0)
 		epoch = 1;
 
@@ -189,38 +184,90 @@ bool CSql::sqlListVideo(listVideo_t* lv)
 		epoch = epoch * 3600 * 24;
 		fromTime = now;
 		toTime   = now - epoch;
-		if (lv->timeMode == timeMode_future)
+		if (clv->timeMode == timeMode_future)
 			fromTime += epoch;
 	}
 
 	string where = "";
-	where += " WHERE ( channel LIKE " + checkString(lv->channel, 128);
-	where += " AND duration >= " + checkInt(lv->duration);
+	where += " WHERE ( channel LIKE " + checkString(clv->channel, 128);
+	where += " AND duration >= " + checkInt(clv->duration);
 	if (epoch > 0) {
 		where += " AND date_unix < " + checkInt(fromTime);
 		where += " AND date_unix > " + checkInt(toTime);
 	}
 	else {
-		if (lv->timeMode != timeMode_future)
+		if (clv->timeMode != timeMode_future)
 			where += " AND date_unix < " + checkInt(now);
 	}
 	where += " )";
 
 	resultCount = getResultCount(where);
 
+//	double timer = startTimer();
+
 	string sql0 = "";
-	sql0 += "SELECT  channel, theme, title, description, url, url_small, url_hd, date_unix, duration, geo, parse_m3u8";
+	sql0 += "SELECT";
+	sql0 += " channel, theme, title, description, website, subtitle, url, url_small, url_hd, url_rtmp,";
+	sql0 += " url_rtmp_small, url_rtmp_hd, url_history, date_unix, duration, size_mb, geo, parse_m3u8";
 	sql0 += " FROM " + tabVideo;
 	sql0 += where;
 	sql0 += " ORDER BY date_unix DESC";
-	sql0 += " LIMIT " + checkInt(lv->limit);
-	sql0 += " OFFSET " + checkInt(lv->start);
+	sql0 += " LIMIT " + checkInt(clv->limit);
+	sql0 += " OFFSET " + checkInt(clv->start);
 
 	string sql = "";
 	sql += "SELECT * FROM ( ";
 	sql += sql0;
 	sql += " ) AS dingens";
 	sql += " ORDER BY date_unix DESC, title ASC;";
+
+	if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
+		show_error(__func__, __LINE__);
+		return false;
+	}
+
+	MYSQL_RES* result = mysql_store_result(mysqlCon);
+	if (result) {
+		if (mysql_num_fields(result) > 0) {
+			MYSQL_ROW row;
+			while ((row = mysql_fetch_row(result))) {
+				listVideo_t lvv;
+				g_mainInstance->cjson->resetListVideoStruct(&lvv);
+				uint64_t* lengths = mysql_fetch_lengths(result);
+				if ((row != NULL) && (row[0] != NULL)) {
+					int index = 0;
+					lvv.channel		= row2string(row, lengths, index++);
+					lvv.theme		= row2string(row, lengths, index++);
+					lvv.title		= row2string(row, lengths, index++);
+					lvv.description		= row2string(row, lengths, index++);
+					lvv.website		= row2string(row, lengths, index++);
+					lvv.subtitle		= row2string(row, lengths, index++);
+					lvv.url			= row2string(row, lengths, index++);
+					lvv.url_small		= row2string(row, lengths, index++);
+					lvv.url_hd		= row2string(row, lengths, index++);
+					lvv.url_rtmp		= row2string(row, lengths, index++);
+					lvv.url_rtmp_small	= row2string(row, lengths, index++);
+					lvv.url_rtmp_hd		= row2string(row, lengths, index++);
+					lvv.url_history		= row2string(row, lengths, index++);
+					lvv.date_unix		= row2int(row, lengths, index++);
+					lvv.duration		= row2int(row, lengths, index++);
+					lvv.size_mb		= row2int(row, lengths, index++);
+					lvv.geo			= row2string(row, lengths, index++);
+					lvv.parse_m3u8		= row2int(row, lengths, index++);
+				}
+				lv.push_back(lvv);
+			}
+		}
+		mysql_free_result(result);
+	}
+
+	int rowsCount = static_cast<int>(lv.size());
+	lvh->start	= clv->start;
+	lvh->end	= clv->start + rowsCount - 1;
+	lvh->rows	= rowsCount;
+	lvh->total	= resultCount;
+
+//	string timer_s = getTimer(timer, "Duration sql query 2: ");
 
 	if (g_debugMode)
 		g_mainInstance->htmlOut << formatSql(sql, 2, "", "") << endl;

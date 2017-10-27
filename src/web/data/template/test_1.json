@@ -8,10 +8,10 @@
     "data": {
         "channel": "ARD",
         "timeMode": 2,
-        "epoch": 1400,
-        "duration": 1,
-        "limit": 25,
+        "epoch": -1,
+        "duration": 0,
+        "limit": 5,
         "start": 0,
-        "refTime": 1506344767
+        "refTime": 0
     }
 }

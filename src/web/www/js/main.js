@@ -1,6 +1,6 @@
 
-//var sqlbuttonDefault = 'defaultHide';
-var sqlbuttonDefault = 'defaultShow';
+var sqlbuttonDefault = 'defaultHide';
+//var sqlbuttonDefault = 'defaultShow';
 var sqlButtonTxtHide = 'Hide SQL';
 var sqlButtonTxtShow = 'Show SQL';
 var msgTxt = "<strong>Message:</strong>";
