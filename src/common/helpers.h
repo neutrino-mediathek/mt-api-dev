@@ -67,4 +67,8 @@ string base64encode(string data);
 vector<unsigned char> base64decode_bin(string data);
 string base64decode_str(string data);
 
+void resetStringstream(ostringstream* oss);
+void resetStringstream(istringstream* iss);
+void resetStringstream(stringstream* ss);
+
 #endif // __helpers_h__

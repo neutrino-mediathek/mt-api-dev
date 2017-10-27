@@ -447,3 +447,21 @@ string base64decode_str(string data)
 {
 	return cppcodec::base64_rfc4648::decode<string>(data.c_str(), data.length());
 }
+
+void resetStringstream(ostringstream* oss)
+{
+	oss->str(string());
+	oss->clear();
+}
+
+void resetStringstream(istringstream* iss)
+{
+	iss->str(string());
+	iss->clear();
+}
+
+void resetStringstream(stringstream* ss)
+{
+	ss->str(string());
+	ss->clear();
+}
