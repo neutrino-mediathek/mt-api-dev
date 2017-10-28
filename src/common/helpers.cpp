@@ -214,7 +214,7 @@ const char *cstr_replace(const char *search, const char *replace, const char *te
 	for (count = 0; (tmp = (char*)strstr(ins, search)); ++count)
 		ins = tmp + len_search;
 
-	int len_tmp = strlen(text) + (len_replace - len_search) * count + 1;
+	int len_tmp = (int)strlen(text) + (len_replace - len_search) * count + 1;
 	tmp = new char[len_tmp];
 	memset(tmp, '\0', len_tmp);
 	result = (const char*)tmp;
