@@ -68,7 +68,7 @@ CMtApi::CMtApi()
 	cjson		= NULL;
 	csql		= NULL;
 	g_debugMode	= false;
-	g_apiMode	= apiMode_unknown;
+	g_apiMode	= apiMode_default;
 	g_queryMode	= queryMode_None;
 	g_msgBoxText	= "";
 	indexMode	= false;

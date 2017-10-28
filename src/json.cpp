@@ -253,6 +253,12 @@ bool CJson::parsePostData(string jData)
 			errorMsg(__func__, __LINE__, tmp_msg);
 			return false;
 		}
+		else {
+			if (strEqual(qh.software, cooliSig1))
+				g_apiMode = apiMode_default;
+			else if (strEqual(qh.software, cooliSig2))
+				g_apiMode = apiMode_cst;
+		}
 		if (qh.mode == queryMode_Info) {
 			errorMsg(__func__, __LINE__, "Function not yet available.");
 			return false;

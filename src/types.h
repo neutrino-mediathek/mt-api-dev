@@ -8,8 +8,8 @@
 using namespace std;
 
 enum {
-	apiMode_coolithek,
-	apiMode_unknown
+	apiMode_default = 1,
+	apiMode_cst     = 2
 };
 
 enum {
