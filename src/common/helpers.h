@@ -37,6 +37,7 @@ string to_string(unsigned long long);
 #endif
 string& str_replace(const string &search, const string &replace, string &text);
 const char *cstr_replace(const char *search, const char *replace, const char *text);
+string stdstr_replace(const string &search, const string &replace, const string &text);
 
 string str_tolower(string s);
 string str_toupper(string s);

@@ -170,6 +170,19 @@ string& str_replace(const string &search, const string &replace, string &text)
 	return text;
 }
 
+string stdstr_replace(const string &search, const string &replace, const string &text)
+{
+	if (search.empty() || text.empty())
+		return text;
+
+	const char* ret_c = cstr_replace(search.c_str(), replace.c_str(), text.c_str());
+	if (ret_c == NULL)
+		return text;
+	string ret_s = static_cast<string>(ret_c);
+	delete [] ret_c;
+	return ret_s;
+}
+
 /*
  * ported from:
  * https://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
