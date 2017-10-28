@@ -163,19 +163,21 @@ int CSql::getResultCount(string where)
 	return ret;
 }
 
-bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv)
+string CSql::sqlListVideo_getSelect()
 {
-	if (mysqlCon == NULL)
-		return false;
+	string ret = "SELECT";
+	ret += " channel, theme, title, description, website, subtitle, url, url_small, url_hd, url_rtmp,";
+	ret += " url_rtmp_small, url_rtmp_hd, url_history, date_unix, duration, size_mb, geo, parse_m3u8";
+	return ret;
+}
 
-	time_t now      = (clv->refTime == 0) ? time(0) : clv->refTime;
+string CSql::sqlListVideo_getWhereTimings(cmdListVideo_t* clv, time_t& now)
+{
+	now             = (clv->refTime == 0) ? time(0) : clv->refTime;
 	time_t fromTime = 0;
 	time_t toTime   = 0;
+	time_t epoch    = clv->epoch;
 
-	g_mainInstance->cjson->resetListVideoHeadStruct(lvh);
-	lvh->refTime	= now;
-
-	time_t epoch = clv->epoch;
 	/* (clv->epoch < 0) => all data */
 	if (epoch == 0)
 		epoch = 1;
@@ -189,8 +191,6 @@ bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVi
 	}
 
 	string where = "";
-	where += " WHERE ( channel LIKE " + checkString(clv->channel, 128);
-	where += " AND duration >= " + checkInt(clv->duration);
 	if (epoch > 0) {
 		where += " AND date_unix < " + checkInt(fromTime);
 		where += " AND date_unix > " + checkInt(toTime);
@@ -199,6 +199,60 @@ bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVi
 		if (clv->timeMode != timeMode_future)
 			where += " AND date_unix < " + checkInt(now);
 	}
+	
+	return where;
+}
+
+bool CSql::sqlListVideo_processingRetData(MYSQL_RES* result, vector<listVideo_t>& lv)
+{
+	if (mysql_num_fields(result) > 0) {
+		MYSQL_ROW row;
+		while ((row = mysql_fetch_row(result))) {
+			listVideo_t lvv;
+			g_mainInstance->cjson->resetListVideoStruct(&lvv);
+			uint64_t* lengths = mysql_fetch_lengths(result);
+			if ((row != NULL) && (row[0] != NULL)) {
+				int index = 0;
+				lvv.channel		= row2string(row, lengths, index++);
+				lvv.theme		= row2string(row, lengths, index++);
+				lvv.title		= row2string(row, lengths, index++);
+				lvv.description		= row2string(row, lengths, index++);
+				lvv.website		= row2string(row, lengths, index++);
+				lvv.subtitle		= row2string(row, lengths, index++);
+				lvv.url			= row2string(row, lengths, index++);
+				lvv.url_small		= row2string(row, lengths, index++);
+				lvv.url_hd		= row2string(row, lengths, index++);
+				lvv.url_rtmp		= row2string(row, lengths, index++);
+				lvv.url_rtmp_small	= row2string(row, lengths, index++);
+				lvv.url_rtmp_hd		= row2string(row, lengths, index++);
+				lvv.url_history		= row2string(row, lengths, index++);
+				lvv.date_unix		= row2int(row, lengths, index++);
+				lvv.duration		= row2int(row, lengths, index++);
+				lvv.size_mb		= row2int(row, lengths, index++);
+				lvv.geo			= row2string(row, lengths, index++);
+				lvv.parse_m3u8		= row2int(row, lengths, index++);
+			}
+			lv.push_back(lvv);
+		}
+	}
+	return true;
+}
+
+bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv)
+{
+	if (mysqlCon == NULL)
+		return false;
+
+	time_t now          = 0;
+	string whereTimings = sqlListVideo_getWhereTimings(clv, now);
+
+	g_mainInstance->cjson->resetListVideoHeadStruct(lvh);
+	lvh->refTime	= now;
+
+	string where = "";
+	where += " WHERE ( channel LIKE " + checkString(clv->channel, 128);
+	where += " AND duration >= " + checkInt(clv->duration);
+	where += whereTimings;
 	where += " )";
 
 	resultCount = getResultCount(where);
@@ -206,9 +260,7 @@ bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVi
 //	double timer = startTimer();
 
 	string sql0 = "";
-	sql0 += "SELECT";
-	sql0 += " channel, theme, title, description, website, subtitle, url, url_small, url_hd, url_rtmp,";
-	sql0 += " url_rtmp_small, url_rtmp_hd, url_history, date_unix, duration, size_mb, geo, parse_m3u8";
+	sql0 += sqlListVideo_getSelect();
 	sql0 += " FROM " + tabVideo;
 	sql0 += where;
 	sql0 += " ORDER BY date_unix DESC";
@@ -228,36 +280,7 @@ bool CSql::sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVi
 
 	MYSQL_RES* result = mysql_store_result(mysqlCon);
 	if (result) {
-		if (mysql_num_fields(result) > 0) {
-			MYSQL_ROW row;
-			while ((row = mysql_fetch_row(result))) {
-				listVideo_t lvv;
-				g_mainInstance->cjson->resetListVideoStruct(&lvv);
-				uint64_t* lengths = mysql_fetch_lengths(result);
-				if ((row != NULL) && (row[0] != NULL)) {
-					int index = 0;
-					lvv.channel		= row2string(row, lengths, index++);
-					lvv.theme		= row2string(row, lengths, index++);
-					lvv.title		= row2string(row, lengths, index++);
-					lvv.description		= row2string(row, lengths, index++);
-					lvv.website		= row2string(row, lengths, index++);
-					lvv.subtitle		= row2string(row, lengths, index++);
-					lvv.url			= row2string(row, lengths, index++);
-					lvv.url_small		= row2string(row, lengths, index++);
-					lvv.url_hd		= row2string(row, lengths, index++);
-					lvv.url_rtmp		= row2string(row, lengths, index++);
-					lvv.url_rtmp_small	= row2string(row, lengths, index++);
-					lvv.url_rtmp_hd		= row2string(row, lengths, index++);
-					lvv.url_history		= row2string(row, lengths, index++);
-					lvv.date_unix		= row2int(row, lengths, index++);
-					lvv.duration		= row2int(row, lengths, index++);
-					lvv.size_mb		= row2int(row, lengths, index++);
-					lvv.geo			= row2string(row, lengths, index++);
-					lvv.parse_m3u8		= row2int(row, lengths, index++);
-				}
-				lv.push_back(lvv);
-			}
-		}
+		sqlListVideo_processingRetData(result, lv);
 		mysql_free_result(result);
 	}
 

@@ -48,6 +48,10 @@ class CSql
 		bool row2bool(MYSQL_ROW& row, uint64_t* lengths, int index);
 		string row2string(MYSQL_ROW& row, uint64_t* lengths, int index);
 
+		string sqlListVideo_getSelect();
+		string sqlListVideo_getWhereTimings(cmdListVideo_t* clv, time_t& now);
+		bool   sqlListVideo_processingRetData(MYSQL_RES* result, vector<listVideo_t>& lv);
+
 	public:
 		CSql();
 		~CSql();
