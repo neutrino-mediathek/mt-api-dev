@@ -115,13 +115,15 @@ void CJson::resetQueryHeaderStruct(query_header_t* qh)
 
 void CJson::resetCmdListVideoStruct(cmdListVideo_t* clv)
 {
-	clv->channel  = "";
-	clv->timeMode = 0;
-	clv->epoch    = 0;
-	clv->duration = 0;
-	clv->limit    = 0;
-	clv->start    = 0;
-	clv->refTime  = 0;
+	clv->channel    = "";
+	clv->timeMode   = 0;
+	clv->epoch      = 0;
+	clv->duration   = 0;
+	clv->limit      = 0;
+	clv->start      = 0;
+	clv->refTime    = 0;
+	clv->keywords   = "";
+	clv->searchMode = 0;
 }
 
 void CJson::resetListVideoStruct(listVideo_t* lv)

@@ -23,7 +23,8 @@ enum {
 	queryMode_listChannels    = 2,
 	queryMode_listLivestreams = 3,
 	queryMode_beginPOSTmode   = 4,
-	queryMode_listVideos      = 5
+	queryMode_listVideos      = 5,
+	queryMode_searchVideos    = 6
 };
 
 typedef struct cmdListVideo_t
@@ -35,6 +36,8 @@ typedef struct cmdListVideo_t
 	int    limit;
 	int    start;
 	time_t refTime;
+	string keywords;
+	int    searchMode;
 } cmdListVideo_struct_t;
 
 typedef struct listVideo_t
