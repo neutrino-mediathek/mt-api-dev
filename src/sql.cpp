@@ -27,6 +27,8 @@ extern string		g_msgBoxText;
 extern const char*	g_progNameShort;
 extern const char*	g_progVersion;
 
+extern void myExit(int val);
+
 CSql::CSql()
 {
 	Init();
@@ -41,6 +43,11 @@ void CSql::Init()
 	tabVersion	= "version";
 	tabVideo	= "video";
 	resultCount	= 0;
+	s_oneWord	= false;
+	s_exactWords	= false;
+	s_title		= false;
+	s_theme		= false;
+	s_url		= false;
 }
 
 CSql::~CSql()
@@ -132,7 +139,7 @@ int CSql::getResultCount(string where)
 		return 0;
 
 	string sql = "";
-        sql += "SELECT COUNT(id) AS anz FROM " + tabVideo + " " + where + ";";
+       	sql += "SELECT COUNT(id) AS anz FROM " + tabVideo + " " + where + ";";
 
 //	double timer = startTimer();
 
@@ -235,6 +242,280 @@ bool CSql::sqlListVideo_processingRetData(MYSQL_RES* result, vector<listVideo_t>
 			lv.push_back(lvv);
 		}
 	}
+	return true;
+}
+
+bool CSql::sqlSearchVideo_checkFound(cmdListVideo_t* clv, string where0, string whereTimings)
+{
+	vector<string> words_v = split(clv->keywords, ' ');
+	string newKeywords = "";
+
+	/* ############ */
+	/* exclude word */
+	excludeWord = "";
+	size_t i = 0;
+	bool foundExcl = false;
+	int foundSearch = 0;
+	for (i = 0; i < words_v.size(); i++) {
+		string tmp_s = words_v[i];
+		if (tmp_s.find("-") == 0) {
+			if (foundExcl)
+				continue;
+			tmp_s = tmp_s.substr(1);
+			tmp_s = "%" + tmp_s + "%";
+			tmp_s = checkString(tmp_s, 256);
+			excludeWord += " NOT LIKE " + tmp_s;
+			foundExcl = true;
+		}
+		else {
+			if (foundSearch > 0)
+				newKeywords += " ";
+			newKeywords += tmp_s;
+			foundSearch++;
+		}
+	}
+	/* ############ */
+
+	if (!newKeywords.empty()) {
+		clv->keywords = newKeywords;
+		words_v = split(clv->keywords, ' ');
+	}
+	else
+		return false;
+
+
+	for (i = 0; i < words_v.size(); i++) {
+		string searchKeyword = "%" + words_v[i] + "%";
+		searchKeyword = checkString(searchKeyword, 256);
+		string where = where0;
+
+		if (s_title || s_theme || s_url) {
+			if (!clv->channel.empty())
+				where += " AND (";
+			where += " (";
+			if (s_title) {
+				where += " title LIKE " + searchKeyword;
+				if (!excludeWord.empty())
+					where += " AND title " + excludeWord;
+				if (s_theme || s_url)
+					where += " AND";
+			}
+			if (s_theme) {
+				where += " theme LIKE " + searchKeyword;
+#if 0
+				if (s_url)
+					where += " OR";
+#endif
+			}
+#if 0
+			if (s_url) {
+				where += " url LIKE " + searchKeyword;
+				where += " OR url_small LIKE " + searchKeyword;
+				where += " OR url_hd LIKE " + searchKeyword;
+			}
+#endif
+			where += " )";
+			if (!clv->channel.empty())
+				where += ")";
+#if 0
+			if (!excludeWord.empty()) {
+				where += " AND (";
+				where += " title " + excludeWord;
+//				where += " AND theme " + excludeWord;
+				where += ")";
+			}
+#endif
+		}
+		where += whereTimings;
+		where += " )";
+
+		resultCount = getResultCount(where);
+
+		wordsCount_t wc;
+		wc.word  = words_v[i];
+		wc.count = resultCount;
+		if (resultCount > 0)
+			wordsFound_v.push_back(wc);
+		else
+			wordsNotFound_v.push_back(wc);
+	}
+	return true;
+}
+
+bool CSql::sqlSearchVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv)
+{
+	if (mysqlCon == NULL)
+		return false;
+
+	if (clv->keywords.empty())
+		return false;
+
+	time_t now          = 0;
+	string whereTimings = sqlListVideo_getWhereTimings(clv, now);
+	g_mainInstance->cjson->resetListVideoHeadStruct(lvh);
+	lvh->refTime	= now;
+
+//	s_oneWord    = ((clv->searchMode & searchMode_oneWord)    == searchMode_oneWord);
+//	s_exactWords = ((clv->searchMode & searchMode_exactWords) == searchMode_exactWords);
+
+	s_title      = ((clv->searchMode & searchMode_title)      == searchMode_title);
+	s_theme      = ((clv->searchMode & searchMode_theme)      == searchMode_theme);
+	s_url        = ((clv->searchMode & searchMode_url)        == searchMode_url);
+	if (!s_title && !s_theme && !s_url) {
+		s_title = true;
+		s_theme = true;
+	}
+
+/*
+searchMode_title	0x100	 256
+searchMode_theme	0x200	 512
+searchMode_url		0x400	1024
+title + theme			 768
+all				1792
+*/
+
+	string where0 = "";
+	where0 += " WHERE (";
+	if (!clv->channel.empty())
+		where0 += " channel LIKE " + checkString(clv->channel, 128);
+
+	sqlSearchVideo_checkFound(clv, where0, whereTimings);
+
+	string wordsNotFound = "";
+	if (!wordsNotFound_v.empty()) {
+		for (size_t i = 0; i < wordsNotFound_v.size(); i++) {
+			if (i > 0)
+				wordsNotFound += ", ";
+			wordsNotFound += wordsNotFound_v[i].word;
+		}
+	}
+
+	string wordsFound = "";
+	if (!wordsFound_v.empty()) {
+		string whereTempl = "";
+		if (wordsFound_v.size() > 1)
+			whereTempl += "(";
+		for (size_t i = 0; i < wordsFound_v.size(); i++) {
+			if (i > 0)
+				wordsFound += ", ";
+			wordsFound += wordsFound_v[i].word + "(" + to_string(wordsFound_v[i].count) + ")";
+
+			string searchKeyword = "%" + wordsFound_v[i].word + "%";
+			searchKeyword = checkString(searchKeyword, 1024);
+			if (i > 0)
+				whereTempl += "@@@ANDOR@@@";
+			whereTempl += " @@@LIKE@@@ LIKE " + searchKeyword;
+		}
+		if (wordsFound_v.size() > 1)
+			whereTempl += ")";
+
+		string where = where0;
+		if (s_title || s_theme || s_url) {
+			if (!clv->channel.empty())
+				where += " AND (";
+			where += " (";
+			if (s_title) {
+				string where_tmp = stdstr_replace("@@@LIKE@@@", "title", whereTempl);
+				where += stdstr_replace("@@@ANDOR@@@", " AND", where_tmp);
+				if (s_theme || s_url)
+					where += " AND ";
+			}
+			if (s_theme) {
+				string where_tmp = stdstr_replace("@@@LIKE@@@", "theme", whereTempl);
+				where += stdstr_replace("@@@ANDOR@@@", " OR", where_tmp);
+#if 0
+				if (s_url)
+					where += " OR ";
+#endif
+			}
+#if 0
+			if (s_url) {
+				where += stdstr_replace("@@@LIKE@@@", "url", whereTempl);
+				where += " OR ";
+				where += stdstr_replace("@@@LIKE@@@", "url_small", whereTempl);
+				where += " OR ";
+				where += stdstr_replace("@@@LIKE@@@", "url_hd", whereTempl);
+			}
+#endif
+			where += ")";
+			if (!clv->channel.empty())
+				where += ")";
+			if (!excludeWord.empty()) {
+				where += " AND (";
+				where += " title " + excludeWord;
+//				where += " AND theme " + excludeWord;
+				where += ")";
+			}
+		}
+		where += whereTimings;
+		where += " )";
+
+		resultCount = getResultCount(where);
+
+//		double timer = startTimer();
+
+		string sql0 = "";
+		sql0 += sqlListVideo_getSelect();
+		sql0 += " FROM " + tabVideo;
+		sql0 += where;
+		sql0 += " ORDER BY date_unix DESC";
+		sql0 += " LIMIT " + checkInt(clv->limit);
+		sql0 += " OFFSET " + checkInt(clv->start);
+
+		string sql = "";
+		sql += "SELECT * FROM ( ";
+		sql += sql0;
+		sql += " ) AS dingens";
+		sql += " ORDER BY date_unix DESC, title ASC;";
+
+		if (mysql_real_query(mysqlCon, sql.c_str(), sql.length()) != 0) {
+			show_error(__func__, __LINE__);
+			return false;
+		}
+
+		MYSQL_RES* result = mysql_store_result(mysqlCon);
+		if (result) {
+			sqlListVideo_processingRetData(result, lv);
+			mysql_free_result(result);
+		}
+
+		if (g_debugMode)
+			g_mainInstance->htmlOut << formatSql(sql, 2, "", "") << endl;
+	}
+	else {
+		lvh->start		= clv->start;
+		lvh->end		= 0;
+		lvh->rows		= 0;
+		lvh->total		= 0;
+		lvh->wordsFound		= "";
+		lvh->wordsNotFound	= wordsNotFound;
+		/* for debugging */
+		lvh->keywords		= clv->keywords;
+		lvh->searchMode		= clv->searchMode;
+		lvh->channel		= clv->channel;
+
+		return false;
+	}
+
+
+//	double timer = startTimer();
+
+
+
+	int rowsCount		= static_cast<int>(lv.size());
+	lvh->start		= clv->start;
+	lvh->end		= clv->start + rowsCount - 1;
+	lvh->rows		= rowsCount;
+	lvh->total		= resultCount;
+	lvh->wordsFound		= wordsFound;
+	lvh->wordsNotFound	= wordsNotFound;
+	/* for debugging */
+	lvh->keywords		= clv->keywords;
+	lvh->searchMode		= clv->searchMode;
+	lvh->channel		= clv->channel;
+
+//	string timer_s = getTimer(timer, "Duration sql query 2: ");
+
 	return true;
 }
 

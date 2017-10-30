@@ -48,15 +48,33 @@ class CSql
 		bool row2bool(MYSQL_ROW& row, uint64_t* lengths, int index);
 		string row2string(MYSQL_ROW& row, uint64_t* lengths, int index);
 
+		/* ########## search ########## */
+		typedef struct wordsCount_t
+		{
+			string word;
+			int count;
+		} wordsCount_struct_t;
+
+		vector<wordsCount_t> wordsFound_v;
+		vector<wordsCount_t> wordsNotFound_v;
+		bool s_oneWord;
+		bool s_exactWords;
+		bool s_title;
+		bool s_theme;
+		bool s_url;
+		string excludeWord;
+
 		string sqlListVideo_getSelect();
 		string sqlListVideo_getWhereTimings(cmdListVideo_t* clv, time_t& now);
 		bool   sqlListVideo_processingRetData(MYSQL_RES* result, vector<listVideo_t>& lv);
+		bool   sqlSearchVideo_checkFound(cmdListVideo_t* clv, string where0, string whereTimings);
 
 	public:
 		CSql();
 		~CSql();
 
 		bool connectMysql();
+		bool sqlSearchVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv);
 		bool sqlListVideo(cmdListVideo_t* clv, listVideoHead_t* lvh, vector<listVideo_t>& lv);
 		bool sqlGetProgInfo(progInfo_t* pi);
 		bool sqlListLiveStreams(vector<livestreams_t>& ls);

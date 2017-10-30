@@ -27,6 +27,17 @@ enum {
 	queryMode_searchVideos    = 6
 };
 
+enum {
+	searchMode_allWords	= 0x1,
+	searchMode_oneWord	= 0x2,
+	searchMode_exactWords	= 0x4,
+	searchMode_title	= 0x100,
+	searchMode_theme	= 0x200,
+	searchMode_url		= 0x400,
+	searchMode_dingens1	= 0x800,
+	searchMode_dingens2	= 0x1000
+};
+
 typedef struct cmdListVideo_t
 {
 	string channel;
@@ -69,6 +80,12 @@ typedef struct listVideoHead_t
 	int    rows;
 	int    total;
 	time_t refTime;
+	string wordsFound;
+	string wordsNotFound;
+	/* for debugging */
+	string keywords;
+	int    searchMode;
+	string channel;
 } listVideoHead_struct_t;
 
 typedef struct progInfo_t

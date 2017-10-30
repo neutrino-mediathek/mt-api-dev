@@ -29,7 +29,7 @@ class CJson
 		void parseError(const char* func, int line, string msg="");
 		void resetQueryHeaderStruct(query_header_t* qh);
 		void resetCmdListVideoStruct(cmdListVideo_t* lv);
-		bool parseListVideo(Json::Value root);
+		bool parseListVideo(Json::Value root, bool searchMode);
 		bool asBool(Json::Value::iterator it);
 
 	public:

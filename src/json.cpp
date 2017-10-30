@@ -115,15 +115,15 @@ void CJson::resetQueryHeaderStruct(query_header_t* qh)
 
 void CJson::resetCmdListVideoStruct(cmdListVideo_t* clv)
 {
-	clv->channel    = "";
-	clv->timeMode   = 0;
-	clv->epoch      = 0;
-	clv->duration   = 0;
-	clv->limit      = 0;
-	clv->start      = 0;
-	clv->refTime    = 0;
-	clv->keywords   = "";
-	clv->searchMode = 0;
+	clv->channel       = "";
+	clv->timeMode      = 0;
+	clv->epoch         = 0;
+	clv->duration      = 0;
+	clv->limit         = 0;
+	clv->start         = 0;
+	clv->refTime       = 0;
+	clv->keywords      = "";
+	clv->searchMode    = 0;
 }
 
 void CJson::resetListVideoStruct(listVideo_t* lv)
@@ -150,11 +150,17 @@ void CJson::resetListVideoStruct(listVideo_t* lv)
 
 void CJson::resetListVideoHeadStruct(listVideoHead_t* lvh)
 {
-	lvh->start   = 0;
-	lvh->end     = 0;
-	lvh->rows    = 0;
-	lvh->total   = 0;
-	lvh->refTime = 0;
+	lvh->start		= 0;
+	lvh->end		= 0;
+	lvh->rows		= 0;
+	lvh->total		= 0;
+	lvh->refTime		= 0;
+	lvh->wordsFound		= "";
+	lvh->wordsNotFound	= "";
+	/* for debugging */
+	lvh->keywords		= "";
+	lvh->searchMode		= 0;
+	lvh->channel		= "";
 }
 
 bool CJson::asBool(Json::Value::iterator it)
@@ -164,7 +170,7 @@ bool CJson::asBool(Json::Value::iterator it)
 	return ((str_tolower(tmp_s) == "false") || (tmp_s == "0")) ? false : true;
 }
 
-bool CJson::parseListVideo(Json::Value root)
+bool CJson::parseListVideo(Json::Value root, bool searchMode)
 {
 	cmdListVideo_t lv;
 	resetCmdListVideoStruct(&lv);
@@ -191,9 +197,20 @@ bool CJson::parseListVideo(Json::Value root)
 		else if (name == "refTime") {
 			lv.refTime = safeStrToInt(it->asString());
 		}
+		if (searchMode) {
+			if (name == "keywords") {
+				lv.keywords = it->asString();
+			}
+			else if (name == "searchMode") {
+				lv.searchMode = safeStrToInt(it->asString());
+			}
+		}
 	}
 
-	g_mainInstance->csql->sqlListVideo(&lv, &listVideoHead, listVideo_v);
+	if (searchMode)
+		g_mainInstance->csql->sqlSearchVideo(&lv, &listVideoHead, listVideo_v);
+	else
+		g_mainInstance->csql->sqlListVideo(&lv, &listVideoHead, listVideo_v);
 
 	return true;
 }
@@ -272,7 +289,10 @@ bool CJson::parsePostData(string jData)
 			return false;
 		}
 		else if (qh.mode == queryMode_listVideos) {
-			return parseListVideo(qh.data);
+			return parseListVideo(qh.data, false);
+		}
+		else if (qh.mode == queryMode_searchVideos) {
+			return parseListVideo(qh.data, true);
 		}
 		else {
 			errorMsg(__func__, __LINE__, "Unknown function.");
@@ -340,12 +360,18 @@ string CJson::videoList2Json(string indent/*=""*/)
 	json["error"] = 0;
 
 	Json::Value head;
-	head["start"]	= listVideoHead.start;
-	head["end"]	= listVideoHead.end;
-	head["rows"]	= listVideoHead.rows;
-	head["total"]	= listVideoHead.total;
-	head["refTime"]	= listVideoHead.refTime;
-	json["head"]	= head;
+	head["start"]		= listVideoHead.start;
+	head["end"]		= listVideoHead.end;
+	head["rows"]		= listVideoHead.rows;
+	head["total"]		= listVideoHead.total;
+	head["refTime"]		= listVideoHead.refTime;
+	head["wordsFound"]	= listVideoHead.wordsFound;
+	head["wordsNotFound"]	= listVideoHead.wordsNotFound;
+	/* for debugging */
+	head["d_channel"]	= listVideoHead.channel;
+	head["d_keywords"]	= listVideoHead.keywords;
+	head["d_searchMode"]	= listVideoHead.searchMode;
+	json["head"]		= head;
 
 	Json::Value entry(Json::arrayValue);
 	for (size_t i = 0; i < listVideo_v.size(); i++) {

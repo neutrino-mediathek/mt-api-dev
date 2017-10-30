@@ -181,7 +181,7 @@ int CMtApi::run(int, char**)
 					inJsonData = cnet->getPostValue(postData, "data1");
 			}
 			if (inJsonData.empty())
-				inJsonData = readFile(g_dataRoot + "/template/test_1.json");
+				inJsonData = readFile(g_dataRoot + "/template/test_2.json");
 
 			if (!g_debugMode) {
 				bool parseIO = cjson->parsePostData(inJsonData);
@@ -224,9 +224,15 @@ int CMtApi::run(int, char**)
 		string mainBody = readFile(g_dataRoot + "/template/main-body.html");
 		inJsonData = cjson->styledJson(inJsonData);
 		if (g_queryMode < queryMode_beginPOSTmode)
-			mainBody = str_replace("@@@JSON_TEXTAREA@@@", "{}", mainBody);
-		else
-			mainBody = str_replace("@@@JSON_TEXTAREA@@@", inJsonData, mainBody);
+			mainBody = str_replace("@@@JSON_TEXTAREA@@@", "", mainBody);
+		else {
+			string tmp_s;
+//			if (g_queryMode == queryMode_searchVideos)
+//				tmp_s = readFile(g_dataRoot + "/template/test_2.json");
+//			else
+				tmp_s = inJsonData;
+			mainBody = str_replace("@@@JSON_TEXTAREA@@@", tmp_s, mainBody);
+		}
 		htmlOut << mainBody;
 
 		if (g_queryMode == queryMode_Info) {
@@ -258,6 +264,20 @@ int CMtApi::run(int, char**)
 					string tmp_json = cjson->videoList2Json("  ");
 					tmp_json = cnet->decodeData(tmp_json);
 					htmlOut << cjson->formatJson(tmp_json) << endl;
+				}
+				else if (g_queryMode == queryMode_searchVideos) {
+					string tmp_json = cjson->videoList2Json("  ");
+					tmp_json = cnet->decodeData(tmp_json);
+					htmlOut << cjson->formatJson(tmp_json) << endl;
+#if 0
+					/* for debugging */
+					string htmlTmp = htmlOut.str();
+					resetStringstream(&htmlOut);
+					htmlTmp = str_replace("@@@searchChannel@@@", cjson->listVideoHead.channel, htmlTmp);
+					htmlTmp = str_replace("@@@searchWords@@@",   cjson->listVideoHead.keywords, htmlTmp);
+					htmlTmp = str_replace("@@@searchMode@@@",    to_string(cjson->listVideoHead.searchMode), htmlTmp);
+					htmlOut << htmlTmp;
+#endif
 				}
 			}
 		}
