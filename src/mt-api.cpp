@@ -20,7 +20,15 @@
 	Boston, MA  02110-1301, USA.
 */
 
-#define PROGVERSION "0.1.0"
+#define DEV_VERSION
+
+#ifdef DEV_VERSION
+#define DEV_VER "-pu/search"
+#else
+#define DEV_VER
+#endif
+
+#define PROGVERSION "0.1.1" DEV_VER
 #define PROGNAME "mediathek-api"
 #define PROGNAMESHORT "mt-api"
 #define COPYRIGHT "2015-2017© M. Liebmann (micha-bbg)"
