@@ -1,6 +1,8 @@
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
-    <script type="text/javascript" src="/js/base64.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/form.css" />
     <script type="text/javascript" src="/js/main.js"></script>
+    <script type="text/javascript" src="/js/base64.js"></script>
+    <script type="text/javascript" src="/js/form.js"></script>
     <script type="text/javascript" src="/js/sql-formatter.min.js"></script>
   </head>
   <body>
@@ -9,31 +11,154 @@
       <tr>
         <td class="formatTD" style="width: 40%">
           <div class="jsonInput">
-            <form action="/api.html" method="post" accept-charset="UTF-8" onSubmit='if (data1.value == "") data1.value = "{}";'>
-              <textarea name="data1" cols="50" rows="10">@@@JSON_TEXTAREA@@@</textarea>
-              <br />
-              <input type="submit" value=" send post data " />
-            </form>
+            <table class="buttonTable">
+              <tr>
+                <td style="vertical-align: bottom" class="buttonTD">
+                  <!-- ################## -->
+                  <!--
+                  build from:
+                  http://tools.webmart.de/form-generator
+                  -->
+                  <div style="width:600px" class="wmfg_layout_1">
+                    <form name="postForm" action="/api.html" method="post" accept-charset="UTF-8" onsubmit='return submitJson();'>
+                      <textarea style="display: none" id="data1" name="data1" cols="50" rows="10">@@@JSON_TEXTAREA@@@</textarea>
+                      <ul class="wmfg_questions">
+                        <li class="wmfg_q">
+                          <div style="float: none;">
+                            <label class="wmfg_label" for="channel">Kanal</label>
+                            <input type="text" class="wmfg_text_2" name="channel" id="channel" />
+                          </div>
+                          <div class="floatDivLeft">
+                            <label class="wmfg_label" for="duration">min. Dauer</label>
+                            <input type="text" class="wmfg_text_2" name="duration" id="duration" value="" />
+                          </div>
+                          <div class="floatDivLeft">
+                            <label class="wmfg_label" for="epoch">Zeitraum (Tage)</label>
+                            <input type="text" class="wmfg_text_2" name="epoch" id="epoch" value="" />
+                          </div>
+                          <div class="floatDivLeft">&nbsp;&nbsp;</div>
+                          <div class="floatDivLeft">
+                            <label class="wmfg_label" for="future">zukünftige</label>
+                            <input type="checkbox" class="wmfg_checkbox" name="future" id="future" value="future" />
+                          </div>
+                          <div class="floatDivLeft">&nbsp;&nbsp;</div>
+                          <div class="floatDivLeft">
+                            <label class="wmfg_label" for="limit">max. Anzahl</label>
+                            <input type="text" class="wmfg_text_2" name="limit" id="limit" value="" />
+                          </div>
+                          <div style="clear: both;">&nbsp;</div>
+                        </li>
+                        <li class="wmfg_q">
+                          <label class="wmfg_label" for="keywords_title">Titel Suchwörter</label>
+                          <input type="text" class="wmfg_text" name="keywords_title" id="keywords_title" value="" />
+                        </li>
+                        <li class="wmfg_q">
+                          <label class="wmfg_label" for="keywords_theme">Theme Suchwörter</label>
+                          <input type="text" class="wmfg_text" name="keywords_theme" id="keywords_theme" value="" />
+                        </li>
+                        <li class="wmfg_q">
+                          <div class="floatDivLeft">
+                          <table class="wmfg_answers">
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="searchMode_1" value="allWords" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="allWords">Alle Wörter suchen</label>
+                              </td>
+                            </tr>
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="searchMode_1" value="oneWord" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="oneWord">Eines der Wörter suchen</label>
+                              </td>
+                            </tr>
+                          </table>
+                          </div>
+                          <div class="floatDivLeft2">&nbsp;&nbsp;</div>
+                          <div class="floatDivLeft">
+                          <table class="wmfg_answers">
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="searchMode_2" value="title" onChange="changeSearchMode_2()" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="title">In Titel suchen</label>
+                              </td>
+                            </tr>
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="searchMode_2" value="title_theme" onChange="changeSearchMode_2()" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="title_theme">In Titel+Thema suchen</label>
+                              </td>
+                            </tr>
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="searchMode_2" value="theme" onChange="changeSearchMode_2()" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="theme">In Thema suchen</label>
+                              </td>
+                            </tr>
+                          </table>
+                          </div>
+                          <div class="floatDivLeft2">&nbsp;&nbsp;</div>
+                          <div class="floatDivLeft">
+                          <table class="wmfg_answers">
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="listMode" value="list" onChange="changeListMode()" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="list">Videos anzeigen</label>
+                              </td>
+                            </tr>
+                            <tr class="wmfg_a">
+                              <td class="wmfg_a_td">
+                                <input type="radio" class="wmfg_radio" name="listMode" value="search" onChange="changeListMode()" />
+                              </td>
+                              <td>
+                                <label class="wmfg_label_a" for="search">Videos suchen</label>
+                              </td>
+                            </tr>
+                          </table>
+                          </div>
+                          <div style="clear: both;">&nbsp;</div>
+                        </li>
+                        <li class="wmfg_q">
+                          <input type="submit" class="wmfg_btn" name="submit_name" id="submit_id" value=" send POST data " />
+                        </li>
+                      </ul>
+                    </form>
+                  </div>
+                  <!-- ################## -->
+                </td>
+              </tr>
+            </table>
             <table class="buttonTable">
               <tr>
                 <td class="buttonTD">
                   <form action="/api.html" method="get" accept-charset="UTF-8">
-                    <input type="submit" value=" reset " />
+                    <input type="submit" class="wmfg_btn" value=" reset " />
                   </form>
                 </td>
                 <td class="buttonTD">
                   <form action="/api/info" method="get" accept-charset="UTF-8">
-                    <input type="submit" value=" prog info " />
+                    <input type="submit" class="wmfg_btn" value=" prog info " />
                   </form>
                 </td>
                 <td class="buttonTD">
                   <form action="/api/listLivestream" method="get" accept-charset="UTF-8">
-                    <input type="submit" value=" list livestreams " />
+                    <input type="submit" class="wmfg_btn" value=" list livestreams " />
                   </form>
                 </td>
                 <td class="buttonTD">
                   <form action="/api/listChannels" method="get" accept-charset="UTF-8">
-                    <input type="submit" value=" list channels " />
+                    <input type="submit" class="wmfg_btn" value=" list channels " />
                   </form>
                 </td>
               </tr>
@@ -72,4 +197,5 @@
     </div>
 <script type="text/javascript">
   setFirstData();
+  setFormData();
 </script>

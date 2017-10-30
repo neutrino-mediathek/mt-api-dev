@@ -1,0 +1,20 @@
+{
+  "data" : 
+  {
+    "channel" : "ZDF",
+    "timeMode" : 2,
+    "epoch" : -1,
+    "duration" : 0,
+    "limit" : 5,
+    "start" : 0,
+    "refTime" : 0,
+    "keywords" : "heute",
+    "searchMode" : 257
+  },
+  "software" : "Neutrino Mediathek - CST",
+  "vMajor" : 0,
+  "vMinor" : 3,
+  "isBeta" : true,
+  "vBeta" : 1,
+  "mode" : 5
+}

@@ -24,6 +24,7 @@ PROG_SOURCES = \
 CSS_SOURCES = \
 	src/css/index.scss \
 	src/css/error.scss \
+	src/css/form.scss \
 	src/css/main.scss
 
 PROGNAME	 = mt-api

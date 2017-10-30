@@ -5,16 +5,20 @@ var sqlButtonTxtHide = 'Hide SQL';
 var sqlButtonTxtShow = 'Show SQL';
 var msgTxt = "<strong>Message:</strong>";
 
+function $id(id) { return document.getElementById(id); }
+function $name(id, index) { return document.getElementsByName(id)[index]; }
+function $nameCount(id) { return document.getElementsByName(id).length; }
+
 function setFirstData() {
 	var text = (sqlbuttonDefault == 'defaultHide') ? sqlButtonTxtShow : sqlButtonTxtHide;
 	var disp = (sqlbuttonDefault == 'defaultHide') ? 'none' : 'block';
-	document.getElementById('spoiler1_txt').innerHTML = text;
-	document.getElementById('sql_0').style.display = disp;
+	$id('spoiler1_txt').innerHTML = text;
+	$id('sql_0').style.display = disp;
 	clearMsgBox();
 }
 
 function clearMsgBox() {
-	document.getElementById('msgPre').innerHTML = msgTxt;
+	$id('msgPre').innerHTML = msgTxt;
 }
 
 function addTextMsgBox(txt) {
@@ -22,25 +26,25 @@ function addTextMsgBox(txt) {
 		clearMsgBox();
 		return;
 	}
-	var tmpTxt = document.getElementById('msgPre').innerHTML;
+	var tmpTxt = $id('msgPre').innerHTML;
 	txt = Base64.decode(txt)
-	document.getElementById('msgPre').innerHTML = tmpTxt + txt;
+	$id('msgPre').innerHTML = tmpTxt + txt;
 }
 
 function jsonBox(json) {
 	json = Base64.decode(json)
-	document.getElementById("jsonContainer_inner").innerHTML = "<pre>" + json + "</pre>";
+	$id("jsonContainer_inner").innerHTML = "<pre>" + json + "</pre>";
 }
 
 function sqlBox(data, id) {
 	data = Base64.decode(data)
 	var sql = sqlFormatter.format(data);
-	document.getElementById("sqlCode_" + id).innerHTML = "<pre>" + sql + "</pre>";
+	$id("sqlCode_" + id).innerHTML = "<pre>" + sql + "</pre>";
 }
 
 function sqlSpoiler() {
-	obj1 = document.getElementById('sql_0');
-	obj2 = document.getElementById('spoiler1_txt');
+	obj1 = $id('sql_0');
+	obj2 = $id('spoiler1_txt');
 	if (obj1.style.display == 'block') {
 		obj1.style.display = 'none';
 		obj2.innerHTML = sqlButtonTxtShow;
