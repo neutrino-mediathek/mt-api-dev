@@ -88,6 +88,7 @@ void CMtApi::Init()
 {
 	/* read GET data */
 	string inData;
+	cnet = new CNet();
 	cnet->readGetData(inData);
 	cnet->splitGetInput(inData, getData);
 	queryString_mode = cnet->getGetValue(getData, "mode");
@@ -116,7 +117,6 @@ void CMtApi::Init()
 	g_progCopyright	= COPYRIGHT;
 	g_progVersion	= "v" PROGVERSION;
 
-	cnet		= new CNet();
 	chtml		= new CHtml();
 	cjson		= new CJson();
 	csql		= new CSql();
