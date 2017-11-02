@@ -97,6 +97,9 @@ void CMtApi::Init()
 	string tmp_s = cnet->getEnv("SERVER_NAME");
 	g_debugMode = ((tmp_s.find(".debug.coolithek.") != string::npos) ||
 		       (tmp_s.find("coolithek.slknet.de") == 0) ||
+		       (tmp_s.find(".deb.") != string::npos) ||
+		       (tmp_s.find("neutrino-mediathek.de") == 0) ||
+		       (tmp_s.find("www.neutrino-mediathek.de") == 0) ||
 		       (indexMode == true));
 	string cth = (g_debugMode) ? "text/html; charset=utf-8" : "application/json; charset=utf-8";
 	cnet->sendContentTypeHeader(cth);
